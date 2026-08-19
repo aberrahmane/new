@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HairCare Algeria — Personalized hair care</title>
+<meta name="description" content="Understand your hair loss and get a routine built for you — HairCare Algeria.">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'Cairo', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          arabic: ['Cairo', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        },
+        colors: {
+          brand: {
+            50:'#EFF8FF',100:'#DBEFFE',200:'#B6DFFD',300:'#84C9FB',400:'#4DAEF7',
+            500:'#2490ED',600:'#1071D3',700:'#0B58A8',800:'#0D4886',900:'#0F3D6E',950:'#0A2647'
+          },
+          accent: {
+            50:'#FFF8EB',100:'#FEECC6',200:'#FDD98C',300:'#FBC152',400:'#F5AA2E',
+            500:'#E8941A',600:'#D2870A',700:'#AD6D06'
+          },
+          ink: '#060B16'
+        },
+        boxShadow: {
+          glow: '0 0 0 1px rgba(36,144,237,0.15), 0 20px 60px -20px rgba(16,113,211,0.45)',
+          'glow-lg': '0 0 0 1px rgba(36,144,237,0.2), 0 30px 80px -20px rgba(16,113,211,0.55)'
+        },
+        keyframes: {
+          'fade-up': { '0%': { opacity: 0, transform: 'translateY(8px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+          'fade-in': { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+          'scale-in': { '0%': { opacity: 0, transform: 'scale(0.96)' }, '100%': { opacity: 1, transform: 'scale(1)' } },
+        },
+        animation: {
+          'fade-up': 'fade-up 0.45s ease-out both',
+          'fade-in': 'fade-in 0.3s ease-out both',
+          'scale-in': 'scale-in 0.25s cubic-bezier(0.16,1,0.3,1) both'
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  html, body { height: 100%; }
+  body {
+    background-color: #060B16;
+    background-image:
+      radial-gradient(circle at 12% -10%, rgba(36,144,237,0.30), transparent 45%),
+      radial-gradient(circle at 90% 10%, rgba(210,135,10,0.14), transparent 40%),
+      radial-gradient(circle at 50% 120%, rgba(16,113,211,0.18), transparent 50%),
+      linear-gradient(180deg, #060B16 0%, #0A1120 100%);
+    background-attachment: fixed;
+  }
+  [dir='rtl'] body { line-height: 1.8; }
+  ::selection { background: rgba(36,144,237,0.4); color: white; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1071D3; border-radius: 999px; }
+  .glass { background: rgba(15,25,45,0.55); backdrop-filter: blur(16px); }
+  .rtl-flip { transition: transform .2s; }
+  [dir='rtl'] .rtl-flip { transform: scaleX(-1); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:999px; background:#2490ED; cursor:pointer; border:2px solid #fff; }
+  .step-track { background: linear-gradient(90deg, #2490ED var(--pct,0%), rgba(255,255,255,0.08) var(--pct,0%)); }
+  @keyframes toast-in { from { opacity:0; transform: translateY(10px) scale(.98);} to {opacity:1; transform:translateY(0) scale(1);} }
+  .toast-anim { animation: toast-in .25s ease-out both; }
+  .pulse-ring { animation: pulse-ring 2.4s cubic-bezier(0.4,0,0.6,1) infinite; }
+  @keyframes pulse-ring { 0%,100% { opacity:.35;} 50% { opacity:.7;} }
+  .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 37%, rgba(255,255,255,0.04) 63%); background-size: 400% 100%; animation: shimmer 1.4s infinite; }
+  @keyframes shimmer { 0% { background-position: 100% 50%;} 100% { background-position: 0 50%;} }
+</style>
+</head>
+<body class="text-slate-200 antialiased font-sans min-h-screen">
+
+<div id="app" class="min-h-screen flex flex-col"></div>
+<div id="toast-root" class="fixed bottom-4 inset-x-0 flex flex-col items-center gap-2 z-[100] px-4 pointer-events-none"></div>
+
+<script>
+/* =========================================================================
+   HairCare Algeria — single-file demo build
+   One local demo account. All data persisted client-side in localStorage.
+   ========================================================================= */
+
+/* ---------------------------- Static data ------------------------------ */
+
+const WILAYAS = [
+ {id:1,name:'Adrar'},{id:2,name:'Chlef'},{id:3,name:'Laghouat'},{id:4,name:'Oum El Bouaghi'},
+ {id:5,name:'Batna'},{id:6,name:'Béjaïa'},{id:7,name:'Biskra'},{id:8,name:'Béchar'},
+ {id:9,name:'Blida'},{id:10,name:'Bouira'},{id:11,name:'Tamanrasset'},{id:12,name:'Tébessa'},
+ {id:13,name:'Tlemcen'},{id:14,name:'Tiaret'},{id:15,name:'Tizi Ouzou'},{id:16,name:'Alger'},
+ {id:17,name:'Djelfa'},{id:18,name:'Jijel'},{id:19,name:'Sétif'},{id:20,name:'Saïda'},
+ {id:21,name:'Skikda'},{id:22,name:'Sidi Bel Abbès'},{id:23,name:'Annaba'},{id:24,name:'Guelma'},
+ {id:25,name:'Constantine'},{id:26,name:'Médéa'},{id:27,name:'Mostaganem'},{id:28,name:"M'Sila"},
+ {id:29,name:'Mascara'},{id:30,name:'Ouargla'},{id:31,name:'Oran'},{id:32,name:'El Bayadh'},
+ {id:33,name:'Illizi'},{id:34,name:'Bordj Bou Arréridj'},{id:35,name:'Boumerdès'},{id:36,name:'El Tarf'},
+ {id:37,name:'Tindouf'},{id:38,name:'Tissemsilt'},{id:39,name:'El Oued'},{id:40,name:'Khenchela'},
+ {id:41,name:'Souk Ahras'},{id:42,name:'Tipaza'},{id:43,name:'Mila'},{id:44,name:'Aïn Defla'},
+ {id:45,name:'Naâma'},{id:46,name:'Aïn Témouchent'},{id:47,name:'Ghardaïa'},{id:48,name:'Relizane'},
+ {id:49,name:'Timimoun'},{id:50,name:'Bordj Badji Mokhtar'},{id:51,name:'Ouled Djellal'},{id:52,name:'Béni Abbès'},
+ {id:53,name:'In Salah'},{id:54,name:'In Guezzam'},{id:55,name:'Touggourt'},{id:56,name:'Djanet'},
+ {id:57,name:"El M'Ghair"},{id:58,name:'El Meniaa'}
+];
+
+const CONDITIONS = [
+  {id:'alopecia_areata', en:'Alopecia Areata', ar:'الثعلبة'},
+  {id:'androgenetic', en:'Androgenetic (Hereditary) Alopecia', ar:'الصلع الوراثي (الأندروجيني)'},
+  {id:'telogen_effluvium', en:'Telogen Effluvium', ar:'تساقط الشعر الكربي'},
+  {id:'postpartum', en:'Postpartum Hair Loss', ar:'تساقط الشعر بعد الولادة'},
+  {id:'dandruff', en:'Dandruff', ar:'القشرة'},
+  {id:'oily_scalp', en:'Oily Scalp', ar:'فروة رأس دهنية'},
+  {id:'dry_scalp', en:'Dry Scalp', ar:'فروة رأس جافة'},
+  {id:'itchy_scalp', en:'Itchy Scalp', ar:'فروة رأس مثيرة للحكة'},
+  {id:'stress', en:'Stress-related Hair Loss', ar:'تساقط الشعر بسبب التوتر'},
+  {id:'vitamin_deficiency', en:'Vitamin Deficiency', ar:'نقص الفيتامينات'},
+  {id:'unknown', en:'Unknown', ar:'غير معروف'}
+];
+
+function bottleSvg(accent){
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <rect width="200" height="200" rx="28" fill="#0b1220"/>
+    <rect x="80" y="28" width="40" height="18" rx="6" fill="${accent}"/>
+    <rect x="64" y="46" width="72" height="126" rx="20" fill="${accent}" fill-opacity="0.16" stroke="${accent}" stroke-width="3"/>
+    <rect x="64" y="92" width="72" height="80" rx="16" fill="${accent}" fill-opacity="0.38"/>
+  </svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+const DEFAULT_PRODUCTS = [
+  {
+    id:'demo-kit', isDemo:true, enabled:true, category:'Hair Growth Serum',
+    name:'Complete Hair Recovery Kit (Demo)', nameAr:'طقم العناية الكاملة للشعر (تجريبي)',
+    description:'A gentle, all-purpose starter kit suitable for every hair type and every stage of hair loss — a safe first step while more personalized matches come in.',
+    descriptionAr:'مجموعة عناية شاملة ولطيفة تناسب جميع أنواع الشعر وجميع مراحل تساقط الشعر — خطوة أولى آمنة ريثما تصلك توصيات أكثر تخصيصًا.',
+    price:4500, ingredients:'Panthenol, Biotin, Niacinamide, Argan oil, Aloe vera extract',
+    ingredientsAr:'بانثينول، بيوتين، نياسيناميد، زيت الأرغان، مستخلص الصبار',
+    utility:'A gentle starter kit that cleanses, strengthens, and hydrates the scalp and hair — a safe first step for any hair type.',
+    utilityAr:'مجموعة تمهيدية لطيفة تنظف وتقوّي وترطّب فروة الرأس والشعر — خطوة أولى آمنة تناسب جميع أنواع الشعر.',
+    usageInstructions:'Apply to towel-dried scalp and hair, morning and night. Massage gently for 1–2 minutes.',
+    frequency:'Twice daily', imageUrl:bottleSvg('#38bdf8'), quantity:150, conditions:[]
+  },
+  {
+    id:'minoxidil-foam', isDemo:false, enabled:true, category:'Hair Growth Serum',
+    name:'5% Minoxidil Scalp Foam', nameAr:'رغوة مينوكسيديل 5% لفروة الرأس',
+    description:'A clinically studied topical foam formulated to help regrow hair and slow further thinning when applied consistently to the scalp.',
+    descriptionAr:'رغوة موضعية مدروسة سريريًا للمساعدة على إنبات الشعر وإبطاء المزيد من ترقّقه عند استخدامها بانتظام على فروة الرأس.',
+    price:6200, ingredients:'Minoxidil 5%, Propylene glycol, Ethanol, Purified water',
+    ingredientsAr:'مينوكسيديل 5%، بروبيلين غليكول، إيثانول، ماء منقّى',
+    utility:'Helps regrow hair and slow further thinning in areas of androgenetic hair loss.',
+    utilityAr:'يساعد على إنبات الشعر وإبطاء المزيد من ترقّقه في مناطق تساقط الشعر الأندروجيني.',
+    usageInstructions:'Apply 1ml directly to the scalp in the area of thinning, twice daily. Do not exceed 2ml per day.',
+    frequency:'Twice daily', conditions:['androgenetic'], imageUrl:bottleSvg('#f59e0b'), quantity:120
+  },
+  {
+    id:'biotin-shampoo', isDemo:false, enabled:true, category:'Shampoo',
+    name:'Biotin Strengthening Shampoo', nameAr:'شامبو البيوتين المقوّي للشعر',
+    description:'A gentle, sulfate-free shampoo enriched with biotin and panthenol to strengthen strands and reduce breakage with everyday use.',
+    descriptionAr:'شامبو لطيف خالٍ من السلفات، غني بالبيوتين والبانثينول، يقوّي الشعر ويقلل من تكسّره مع الاستخدام اليومي.',
+    price:2200, ingredients:'Biotin, Panthenol, Zinc PCA, Coconut-derived surfactants (sulfate-free)',
+    ingredientsAr:'بيوتين، بانثينول، زنك PCA، مواد منظفة مشتقة من جوز الهند (خالية من السلفات)',
+    utility:'Cleanses without stripping natural oils, while strengthening strands and reducing breakage.',
+    utilityAr:'ينظف الشعر دون إزالة زيوته الطبيعية، مع تقوية الخصلات وتقليل التكسر.',
+    usageInstructions:'Massage into wet hair and scalp, leave for 2–3 minutes, then rinse thoroughly.',
+    frequency:'3–4 times per week', conditions:['telogen_effluvium'], imageUrl:bottleSvg('#22d3ee'), quantity:200
+  },
+  {
+    id:'caffeine-serum', isDemo:false, enabled:true, category:'Hair Growth Serum',
+    name:'Caffeine Anti-Hair-Loss Serum', nameAr:'سيروم الكافيين المضاد لتساقط الشعر',
+    description:'A lightweight leave-in serum with caffeine and niacinamide that targets the scalp to help support thicker-looking hair over time.',
+    descriptionAr:'سيروم خفيف يُترك على الشعر، يحتوي على الكافيين والنياسيناميد، يستهدف فروة الرأس للمساعدة على دعم مظهر شعر أكثف مع مرور الوقت.',
+    price:3800, ingredients:'Caffeine, Niacinamide, Hyaluronic acid, Panthenol',
+    ingredientsAr:'كافيين، نياسيناميد، حمض الهيالورونيك، بانثينول',
+    utility:'Targets the scalp to help support thicker-looking hair over time, with no rinsing required.',
+    utilityAr:'يستهدف فروة الرأس للمساعدة على دعم مظهر شعر أكثف مع مرور الوقت، دون الحاجة للشطف.',
+    usageInstructions:'Apply a few drops to the scalp after washing and massage gently. Do not rinse out.',
+    frequency:'Once daily', conditions:['androgenetic'], imageUrl:bottleSvg('#a78bfa'), quantity:75
+  }
+];
+
+const DEFAULT_ARTICLES = [
+  {
+    slug:'smoking-harms-and-hair', enabled:true,
+    title:'The Harms of Smoking — And What It Does to Your Hair',
+    titleAr:'أضرار التدخين على الصحة والشعر',
+    summary:'A concise, medically grounded look at how smoking affects the scalp and hair growth, alongside its well-known health risks.',
+    summaryAr:'نظرة طبية وشرعية موجزة على مخاطر التدخين وتأثيره السلبي على صحة فروة الرأس ونمو الشعر.',
+    content:`<p>Smoking's damage to the heart, lungs, and blood vessels is well documented — but its effects reach further than most people expect, including the scalp and hair follicles.</p>
+<h3>How smoking affects hair</h3>
+<p>Nicotine and other compounds released by burning tobacco narrow the small blood vessels that feed hair follicles, reducing the oxygen and nutrients they receive. This can push more hairs into the resting (telogen) phase earlier than normal, contributing to increased shedding.</p>
+<ul><li>Smoking increases oxidative stress in the body — a factor researchers have linked to hair thinning and premature graying.</li>
+<li>Several studies have found an association between chronic smoking and more severe androgenetic (pattern) hair loss in people already genetically predisposed to it.</li>
+<li>It can also affect scalp healing and the overall strength and shine of hair over time.</li></ul>
+<h3>A practical next step</h3>
+<p>Quitting smoking is one of the most impactful things a person can do for their overall health — hair included. If you're ready to quit, a doctor or pharmacist can help you find a plan that fits your situation.</p>`,
+    contentAr:`<p>يُعدّ الجسد أمانة استخلفنا الله عليها، وقد جاءت مقاصد الشريعة الإسلامية بحفظ النفس وصيانتها من كل ما يضرّها. ولهذا أفتى كثير من هيئات الإفتاء المعاصرة بتحريم التدخين أو كراهته الشديدة، لما ثبت طبيًا من ضرره.</p>
+<h3>الأضرار الطبية للتدخين</h3>
+<p>تؤكد الدراسات الطبية أن ضرر التدخين لا يقتصر على الرئتين والقلب والأوعية الدموية، بل يمتد أثره إلى فروة الرأس وبصيلات الشعر. فالنيكوتين يُضيّق الأوعية الدموية الدقيقة المغذية للبصيلات، ما يقلل من وصول الأكسجين والعناصر الغذائية إليها.</p>
+<ul><li>يزيد التدخين من الإجهاد التأكسدي المرتبط بتساقط الشعر وتسارع الشيب.</li>
+<li>ترتبط عدة دراسات بين التدخين المزمن وزيادة حدة الصلع الوراثي لدى المستعدين له.</li>
+<li>يؤثر التدخين على التئام فروة الرأس ويُضعف جودة الشعر ولمعانه بمرور الوقت.</li></ul>
+<h3>خطوة عملية</h3>
+<p>الإقلاع عن التدخين خطوة تحسّن صحة الجسم عمومًا، ومن ضمنها صحة الشعر. يُنصح دائمًا بمراجعة طبيب مختص للحصول على خطة إقلاع مناسبة وآمنة.</p>`
+  },
+  {
+    slug:'anemia-and-hair-loss', enabled:true,
+    title:'How Anemia (Iron Deficiency) Affects Hair Loss',
+    titleAr:'تأثير فقر الدم (نقص الحديد) على تساقط الشعر',
+    summary:"Iron deficiency is one of the most common — and most treatable — causes of non-genetic hair thinning. Here's how the two connect.",
+    summaryAr:'كيف يرتبط نقص الحديد والفيريتين بتساقط الشعر، وأهمية الأخذ بالأسباب في طلب العلاج.',
+    content:`<p>Iron deficiency is one of the most common, and most reversible, causes of hair shedding that isn't related to genetics. It can show up before full-blown anemia does, which is why doctors often check ferritin — the body's iron-storage marker — even when hemoglobin still looks normal.</p>
+<h3>The link between iron and hair</h3>
+<p>Hair follicles are metabolically active tissue, and low iron stores can push more follicles into the resting (telogen) phase earlier than usual. This tends to show up as diffuse thinning rather than a defined bald patch.</p>
+<ul><li>Iron-deficiency anemia is especially common in women, particularly during heavy periods, pregnancy, and the postpartum period.</li>
+<li>Correcting low ferritin can help reduce shedding in people who are deficient, though the relationship isn't the same for everyone.</li>
+<li>Both markers are simple to check with a standard blood test — you can log your own results in this app's Lab Test section.</li></ul>
+<h3>What to do next</h3>
+<p>If you're noticing unexplained shedding, ask your doctor for a full panel including iron, ferritin, and hemoglobin. A proper diagnosis is the foundation of any treatment plan.</p>`,
+    contentAr:`<p>حثّ ديننا الحنيف على الأخذ بالأسباب مع التوكل على الله، وهذا أصل عظيم يدفعنا للبحث عن أسباب مشكلاتنا الصحية، ومنها تساقط الشعر، بدل الاستسلام للقلق دون علم.</p>
+<h3>العلاقة بين فقر الدم وتساقط الشعر</h3>
+<p>من الأسباب الشائعة والقابلة للعلاج لتساقط الشعر غير الوراثي نقصُ الحديد، سواء وصل إلى درجة فقر الدم أو بقي في مرحلة نقص الفيريتين قبل ظهوره. ترتبط مستوياته المنخفضة بدخول بصيلات الشعر في طور السكون مبكرًا، ما يؤدي إلى تساقط منتشر وملحوظ.</p>
+<ul><li>يُعدّ فقر الدم بسبب نقص الحديد أكثر شيوعًا لدى النساء، خصوصًا في فترات الحيض الغزير أو الحمل أو بعد الولادة.</li>
+<li>تشير بعض الدراسات إلى أن تحسين مستوى الفيريتين قد يساعد في تقليل شدة التساقط لدى من يعانون من نقصه.</li>
+<li>يمكن فحص هذه المؤشرات بسهولة عبر تحليل دم بسيط، وهو ما تتيحه ميزة "التحليل المخبري" في هذا التطبيق.</li></ul>
+<h3>ماذا تفعل؟</h3>
+<p>إذا لاحظت تساقطًا غير مبرر للشعر، فمن الحكمة إجراء تحليل شامل للحديد والفيريتين والهيموغلوبين لدى طبيبك، فالتشخيص الدقيق هو الأساس لأي علاج.</p>`
+  },
+  {
+    slug:'vitamin-d-tsh-and-hair', enabled:true,
+    title:'How Vitamin D and Thyroid Hormone (TSH) Affect Hair Health',
+    titleAr:'تأثير فيتامين د وهرمون الغدة الدرقية (TSH) على صحة الشعر',
+    summary:'A plain-language look at how vitamin D and thyroid function influence the hair growth cycle.',
+    summaryAr:'نظرة طبية مبسطة على دور فيتامين د والغدة الدرقية في دورة نمو الشعر.',
+    content:`<p>Hair follicles are surprisingly sensitive to what's happening in the rest of the body — including hormone levels that have nothing to do with hair directly, like vitamin D and thyroid-stimulating hormone (TSH).</p>
+<h3>Vitamin D and hair growth</h3>
+<p>Vitamin D appears to play a role in activating new hair follicles and supporting the normal growth cycle. Some studies have found a link between low vitamin D levels and certain types of hair loss — though this research is still evolving.</p>
+<h3>TSH and the thyroid</h3>
+<p>TSH is the main marker doctors use to check how well the thyroid is functioning. Both an underactive thyroid (high TSH) and an overactive one (low TSH) can cause diffuse hair thinning.</p>
+<ul><li>Hair loss caused by a thyroid imbalance often improves significantly once hormone levels are corrected under a doctor's care.</li>
+<li>TSH is a reasonable marker to ask for whenever hair loss is unexplained — especially alongside fatigue or unexpected weight change.</li>
+<li>You can log these results over time using this app's Lab Test feature.</li></ul>
+<h3>Takeaway</h3>
+<p>If you notice an unusual change in your hair, it's worth checking these markers with a doctor rather than guessing.</p>`,
+    contentAr:`<p>من تمام حكمة الخلق أن جعل الله لكل عضو في جسم الإنسان وظيفة دقيقة يعتمد عليها توازن الجسم كله، ومن ذلك الغدة الدرقية وهرموناتها التي تؤثر في كل خلية تقريبًا، بما فيها بصيلات الشعر.</p>
+<h3>فيتامين د ودوره في نمو الشعر</h3>
+<p>يلعب فيتامين د دورًا في تنشيط بصيلات الشعر الجديدة والحفاظ على دورة نموها الطبيعية. وقد أظهرت بعض الأبحاث ارتباطًا بين انخفاض مستوياته وبعض أنواع تساقط الشعر.</p>
+<h3>هرمون TSH والغدة الدرقية</h3>
+<p>هرمون TSH هو المؤشر الأساسي الذي يستخدمه الأطباء لتقييم عمل الغدة الدرقية. فكل من قصورها وفرط نشاطها قد يؤديان إلى تساقط منتشر في الشعر.</p>
+<ul><li>غالبًا ما يكون تساقط الشعر الناتج عن خلل الغدة الدرقية قابلاً للعلاج بعد ضبط الهرمونات بإشراف طبي.</li>
+<li>يُنصح بفحص TSH ضمن الفحوصات الأساسية عند أي تساقط شعر غير مبرر.</li>
+<li>يمكنك تسجيل نتائج هذه التحاليل في ميزة "التحليل المخبري" لمتابعة تطورها بمرور الوقت.</li></ul>
+<h3>خاتمة</h3>
+<p>الجسد نعمة تستحق الرعاية والمتابعة. لا تتردد في استشارة طبيبك عند ملاحظة أي تغيّر غير معتاد في صحة شعرك.</p>`
+  }
+];
+
+const MARKERS = [
+  {key:'ferritin', unit:'ng/mL', low:20, high:250},
+  {key:'vitaminD', unit:'ng/mL', low:30, high:100},
+  {key:'vitaminB12', unit:'pg/mL', low:200, high:900},
+  {key:'zinc', unit:'µg/dL', low:60, high:130},
+  {key:'iron', unit:'µg/dL', low:60, high:170},
+  {key:'tsh', unit:'mIU/L', low:0.4, high:4.0},
+  {key:'hemoglobin', unit:'g/dL', low:12, high:17.5}
+];
+
+/* ------------------------------- i18n ----------------------------------- */
+
+const I18N = {
+en: {
+  app_name:'HairCare Algeria', tagline:'Personalized hair care',
+  nav_products:'Products', nav_articles:'Articles', nav_lab_test:'Lab Test', nav_favorites:'Favorites',
+  nav_dashboard:'Dashboard', nav_admin:'Admin', nav_login:'Sign in', nav_signup:'Sign up', nav_logout:'Sign out',
+  nav_settings:'Settings',
+  home_hero_eyebrow:'Made for Algeria',
+  home_hero_title:'Understand your hair loss. Get a routine built for you.',
+  home_hero_subtitle:'A short quiz and an optional lab-test review give you personalized product recommendations and practical guidance.',
+  home_cta_quiz:'Take the quiz', home_cta_browse:'Browse products',
+  feature_onboarding_title:'Take the quiz', feature_onboarding_desc:'Answer a few quick questions about your hair loss to get matched with the right routine.',
+  feature_lab_test_title:'Lab test check', feature_lab_test_desc:'Enter your results by hand for a quick, educational reference-range check.',
+  feature_dashboard_title:'Your dashboard', feature_dashboard_desc:'See your profile, saved favorites, and personalized suggestions in one place.',
+  feature_products_title:'Browse products', feature_products_desc:'Explore hair care products and save the ones you want to try.',
+  feature_articles_title:'Read articles', feature_articles_desc:'Practical tips and guides for healthier hair care habits.',
+  footer_disclaimer:'Educational guidance, not a medical diagnosis.',
+  demo_notice:'Single demo account · data stays in this browser only',
+  back:'Back', continue:'Continue', cancel:'Cancel', save:'Save changes', saved:'Saved', edit:'Edit', delete:'Delete',
+  yes:'Yes', no:'No', skip_for_now:'Skip for now', close:'Close', loading:'Loading…',
+  email:'Email', password:'Password', age:'Age', gender:'Gender', gender_male:'Male', gender_female:'Female',
+  wilaya:'Wilaya', select_wilaya:'Select your wilaya', lifestyle:'Lifestyle', lifestyle_non_smoker:'Non-smoker', lifestyle_smoker:'Smoker',
+  family_history:'Family history', family_history_question:'Family history of hair loss?',
+  field_duration:'Duration', field_severity:'Severity', profile:'Profile', usage:'Usage', ingredients:'Ingredients',
+  utility:"What it's for", currency_dzd:'DZD', recommendations:'Recommendations', conditions:'Possible conditions',
+
+  login_title:'Login to HairCare', login_subtitle:'Access your dashboard, favorites, and recommendations.',
+  login_demo_hint:'Demo account — use the button below to fill it in instantly.', fill_demo:'Use demo account',
+  new_here:'New here?', create_an_account:'Sign up', login_action:'Log in', logging_in:'Logging in…',
+  login_failed:'Incorrect email or password.',
+  signup_title:'Create your account', signup_subtitle:'This build supports a single local account, stored only in your browser.',
+  signup_action:'Create account', creating_account:'Creating account…', password_hint:'At least 6 characters.',
+  already_signed_up:'Already have an account?', signup_failed:'Please fill in a valid email and password.',
+  account_exists:'An account already exists in this browser — logging you in.',
+  welcome_back:'Welcome back',
+
+  quiz_eyebrow:'Quiz', quiz_title:"Let's build your routine",
+  step_duration:'Duration', step_severity:'Severity', step_about:'About you', step_conditions:'Conditions', step_results:'Results',
+  quiz_q_duration:'How long have you noticed hair loss?', quiz_q_severity:'How would you describe the severity?',
+  quiz_q_conditions:'Which of these apply to you? (select any)',
+  duration_recent:'Less than 3 months', duration_few_months:'3 to 6 months', duration_about_year:'6 to 12 months', duration_over_year:'Over a year',
+  severity_mild:'Mild', severity_mild_desc:'Slightly more shedding than usual.',
+  severity_moderate:'Moderate', severity_moderate_desc:'Noticeably thinner in places.',
+  severity_severe:'Severe', severity_severe_desc:'Significant, visible hair loss.',
+  quiz_results_title:'Your results', quiz_results_intro:"Based on your answers, here's where we'd start.",
+  reco_reason_matched:'Matched to your {severity} severity profile.',
+  reco_reason_general:'A general recommendation to get you started.',
+  reco_reason_demo:'Recommended for every hair type and condition — a safe starting point.',
+  go_to_dashboard:'Go to dashboard', browse_all_products:'Browse all products', revise_answers:'Revise answers', see_results:'See my results',
+  save_profile:'Save profile',
+
+  dashboard_title:'Your hair care overview', dashboard_subtitle:'Track your profile, saved favorites, and personalized suggestions.',
+  no_profile_yet_title:'No profile yet', no_profile_yet_desc:'Take the quiz to get personalized guidance.', take_the_quiz:'Take the quiz',
+  no_recommendations_yet:'No recommendations yet', no_favorites_yet:'No favorites yet',
+  no_favorites_yet_desc:'Save products and articles as you browse to find them here later.',
+  no_lab_tests_yet_title:'No lab tests yet', no_lab_tests_yet_desc:'Enter your results for a quick, educational check.',
+  hair_profile_summary:'Hair profile summary', progress_tracking:'Progress tracking',
+  progress_days_tracked:'days tracked since your first quiz',
+
+  products_title:'Products', products_subtitle:'Browse helpful hair care products and save favorites with one tap.',
+  no_products_yet_title:'No products yet', search_products:'Search products…', all_categories:'All categories',
+  in_stock:'{count} in stock', out_of_stock:'Out of stock', demo_product_badge:'Demo product',
+  save_to_favorites:'Save to favorites', saved_to_favorites:'Saved to favorites', product_not_found:'Product not found',
+
+  articles_title:'Articles', articles_subtitle:'Read practical tips and learn more about healthy hair care habits.',
+  no_articles_yet_title:'No articles yet', article_not_found:'Article not found',
+
+  favorites_title:'Your saved picks', favorites_subtitle:'Manage the products and articles you want to revisit.',
+  favorites_login_prompt:'Log in to see your saved favorites.', remove:'Remove',
+  item_type_product:'Product', item_type_article:'Article',
+
+  lab_title:'Add your lab test results', lab_disclaimer:'This is an educational check, not a medical diagnosis. Always discuss your results with a doctor.',
+  lab_notes_label:'Notes (optional)', lab_notes_placeholder:"Anything else you'd like to add…",
+  lab_submit:'Save results', lab_results_title:'Your saved lab tests',
+  lab_reference_range:'reference range', lab_ranges_disclaimer:'Reference ranges shown are general and approximate for adults — they vary between laboratories. Always discuss results with a doctor.',
+  lab_flag_low:'Low', lab_flag_normal:'Normal', lab_flag_high:'High',
+  lab_marker_ferritin:'Ferritin', lab_marker_vitaminD:'Vitamin D', lab_marker_vitaminB12:'Vitamin B12',
+  lab_marker_zinc:'Zinc', lab_marker_iron:'Iron', lab_marker_tsh:'TSH', lab_marker_hemoglobin:'Hemoglobin',
+  lab_leave_blank:'Leave any value blank if you don\'t have it.',
+
+  settings_title:'Settings', settings_subtitle:'Update your profile, language, and account.',
+  update_profile:'Update profile', change_password:'Change password', new_password:'New password',
+  delete_account:'Delete account', delete_account_desc:'This permanently clears your profile, favorites, and lab tests from this browser.',
+  confirm_delete_account:'Delete your account and all local data? This cannot be undone.',
+  language:'Language', switch_to_arabic:'العربية', switch_to_english:'English',
+  password_updated:'Password updated', profile_updated:'Profile updated',
+
+  admin_title:'Admin panel', admin_subtitle:'Manage products and educational articles for this demo account.',
+  admin_manage_products:'Manage products', admin_manage_articles:'Manage articles',
+  admin_new_product:'New product', admin_new_article:'New article',
+  admin_name_en:'Name (English)', admin_name_ar:'Name (Arabic)',
+  admin_description_en:'Description (English)', admin_description_ar:'Description (Arabic)',
+  admin_price:'Price (DZD)', admin_quantity:'Quantity in stock', admin_category:'Category',
+  admin_ingredients_en:'Ingredients (English)', admin_ingredients_ar:'Ingredients (Arabic)',
+  admin_utility_en:"What it's for (English)", admin_utility_ar:"What it's for (Arabic)",
+  admin_usage:'Usage instructions', admin_frequency:'Frequency',
+  admin_title_en:'Title (English)', admin_title_ar:'Title (Arabic)',
+  admin_summary_en:'Summary (English)', admin_summary_ar:'Summary (Arabic)',
+  admin_content_en:'Content — HTML (English)', admin_content_ar:'Content — HTML (Arabic)',
+  admin_create:'Create', admin_update:'Save changes', admin_enabled:'Enabled', admin_is_demo:'Always-recommended demo product',
+  confirm_delete_product:'Delete this product? This cannot be undone.',
+  confirm_delete_article:'Delete this article? This cannot be undone.',
+
+  toast_saved_product:'Saved "{name}" to your favorites', toast_login_to_save:'Log in to save favorites',
+  toast_removed_favorite:'Removed from favorites', toast_product_created:'Product created', toast_product_updated:'Product updated',
+  toast_product_deleted:'Product deleted', toast_article_created:'Article created', toast_article_updated:'Article updated',
+  toast_article_deleted:'Article deleted', toast_logged_out:'Signed out',
+  onboarding_intro:"Answer a few quick questions so we can personalize your dashboard. It takes about a minute.",
+  role_admin_toggle:'Enable admin tools for this account'
+},
+ar: {
+  app_name:'هيركير الجزائر', tagline:'عناية شعر مخصّصة لك',
+  nav_products:'المنتجات', nav_articles:'المقالات', nav_lab_test:'التحليل المخبري', nav_favorites:'المفضلة',
+  nav_dashboard:'لوحة التحكم', nav_admin:'الإدارة', nav_login:'تسجيل الدخول', nav_signup:'إنشاء حساب', nav_logout:'تسجيل الخروج',
+  nav_settings:'الإعدادات',
+  home_hero_eyebrow:'مصمم للجزائر',
+  home_hero_title:'افهم سبب تساقط شعرك. واحصل على روتين مصمم خصيصًا لك.',
+  home_hero_subtitle:'اختبار قصير ومراجعة اختيارية لتحاليلك المخبرية تمنحانك توصيات منتجات مخصّصة وإرشادات عملية.',
+  home_cta_quiz:'ابدأ الاختبار', home_cta_browse:'تصفح المنتجات',
+  feature_onboarding_title:'ابدأ الاختبار', feature_onboarding_desc:'أجب عن بعض الأسئلة السريعة حول تساقط شعرك لنطابقك مع الروتين المناسب.',
+  feature_lab_test_title:'فحص التحاليل', feature_lab_test_desc:'أدخل نتائجك يدويًا للحصول على فحص تعليمي سريع لنطاقات القيم المرجعية.',
+  feature_dashboard_title:'لوحة تحكمك', feature_dashboard_desc:'شاهد ملفك الشخصي، مفضلاتك، واقتراحاتك المخصصة في مكان واحد.',
+  feature_products_title:'تصفح المنتجات', feature_products_desc:'اكتشف منتجات العناية بالشعر واحفظ ما يعجبك.',
+  feature_articles_title:'اقرأ المقالات', feature_articles_desc:'نصائح عملية وأدلة لعادات عناية أفضل بالشعر.',
+  footer_disclaimer:'إرشادات تعليمية، وليست تشخيصًا طبيًا.',
+  demo_notice:'حساب تجريبي واحد فقط · تبقى البيانات في هذا المتصفح',
+  back:'رجوع', continue:'متابعة', cancel:'إلغاء', save:'حفظ التغييرات', saved:'تم الحفظ', edit:'تعديل', delete:'حذف',
+  yes:'نعم', no:'لا', skip_for_now:'تخطي الآن', close:'إغلاق', loading:'جارٍ التحميل…',
+  email:'البريد الإلكتروني', password:'كلمة المرور', age:'العمر', gender:'الجنس', gender_male:'ذكر', gender_female:'أنثى',
+  wilaya:'الولاية', select_wilaya:'اختر ولايتك', lifestyle:'نمط الحياة', lifestyle_non_smoker:'غير مدخن', lifestyle_smoker:'مدخن',
+  family_history:'التاريخ العائلي', family_history_question:'هل يوجد تاريخ عائلي لتساقط الشعر؟',
+  field_duration:'المدة', field_severity:'الشدة', profile:'الملف الشخصي', usage:'طريقة الاستخدام', ingredients:'المكوّنات',
+  utility:'الفائدة', currency_dzd:'د.ج', recommendations:'التوصيات', conditions:'الحالات المحتملة',
+
+  login_title:'تسجيل الدخول إلى هيركير', login_subtitle:'ادخل إلى لوحتك ومفضلاتك وتوصياتك.',
+  login_demo_hint:'حساب تجريبي — استخدم الزر أدناه لملء البيانات فورًا.', fill_demo:'استخدام الحساب التجريبي',
+  new_here:'جديد هنا؟', create_an_account:'إنشاء حساب', login_action:'دخول', logging_in:'جارٍ الدخول…',
+  login_failed:'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+  signup_title:'أنشئ حسابك', signup_subtitle:'تدعم هذه النسخة حسابًا محليًا واحدًا فقط، يُحفظ في متصفحك.',
+  signup_action:'إنشاء الحساب', creating_account:'جارٍ الإنشاء…', password_hint:'6 أحرف على الأقل.',
+  already_signed_up:'لديك حساب بالفعل؟', signup_failed:'يرجى إدخال بريد إلكتروني وكلمة مرور صالحين.',
+  account_exists:'يوجد حساب بالفعل في هذا المتصفح — سيتم تسجيل دخولك.',
+  welcome_back:'مرحبًا بعودتك',
+
+  quiz_eyebrow:'الاختبار', quiz_title:'لنبنِ روتينك',
+  step_duration:'المدة', step_severity:'الشدة', step_about:'عنك', step_conditions:'الحالات', step_results:'النتائج',
+  quiz_q_duration:'منذ متى تلاحظ تساقط الشعر؟', quiz_q_severity:'كيف تصف شدة التساقط؟',
+  quiz_q_conditions:'أي من هذه الحالات ينطبق عليك؟ (اختر ما يلزم)',
+  duration_recent:'أقل من 3 أشهر', duration_few_months:'من 3 إلى 6 أشهر', duration_about_year:'من 6 إلى 12 شهرًا', duration_over_year:'أكثر من سنة',
+  severity_mild:'خفيفة', severity_mild_desc:'تساقط أكثر قليلًا من المعتاد.',
+  severity_moderate:'متوسطة', severity_moderate_desc:'ترقّق ملحوظ في بعض الأماكن.',
+  severity_severe:'شديدة', severity_severe_desc:'تساقط شعر واضح وكبير.',
+  quiz_results_title:'نتائجك', quiz_results_intro:'بناءً على إجاباتك، إليك من أين نبدأ.',
+  reco_reason_matched:'مطابق لملفك بشدة {severity}.',
+  reco_reason_general:'توصية عامة لتبدأ بها.',
+  reco_reason_demo:'موصى به لجميع أنواع الشعر والحالات — خطوة أولى آمنة.',
+  go_to_dashboard:'الذهاب إلى لوحة التحكم', browse_all_products:'تصفح جميع المنتجات', revise_answers:'تعديل الإجابات', see_results:'عرض نتائجي',
+  save_profile:'حفظ الملف الشخصي',
+
+  dashboard_title:'نظرة عامة على عناية شعرك', dashboard_subtitle:'تابع ملفك الشخصي ومفضلاتك واقتراحاتك المخصصة.',
+  no_profile_yet_title:'لا يوجد ملف شخصي بعد', no_profile_yet_desc:'أجرِ الاختبار للحصول على إرشادات مخصصة.', take_the_quiz:'ابدأ الاختبار',
+  no_recommendations_yet:'لا توجد توصيات بعد', no_favorites_yet:'لا توجد مفضلات بعد',
+  no_favorites_yet_desc:'احفظ المنتجات والمقالات أثناء التصفح لتجدها هنا لاحقًا.',
+  no_lab_tests_yet_title:'لا توجد تحاليل بعد', no_lab_tests_yet_desc:'أدخل نتائجك للحصول على فحص تعليمي سريع.',
+  hair_profile_summary:'ملخص ملف الشعر', progress_tracking:'تتبع التقدم',
+  progress_days_tracked:'يومًا منذ أول اختبار لك',
+
+  products_title:'المنتجات', products_subtitle:'تصفح منتجات العناية بالشعر واحفظ المفضلة بنقرة واحدة.',
+  no_products_yet_title:'لا توجد منتجات بعد', search_products:'ابحث عن منتج…', all_categories:'كل الفئات',
+  in_stock:'{count} متوفر', out_of_stock:'غير متوفر', demo_product_badge:'منتج تجريبي',
+  save_to_favorites:'حفظ في المفضلة', saved_to_favorites:'محفوظ في المفضلة', product_not_found:'المنتج غير موجود',
+
+  articles_title:'المقالات', articles_subtitle:'اقرأ نصائح عملية وتعرف على عادات العناية الصحية بالشعر.',
+  no_articles_yet_title:'لا توجد مقالات بعد', article_not_found:'المقال غير موجود',
+
+  favorites_title:'مفضلاتك', favorites_subtitle:'أدر المنتجات والمقالات التي تريد الرجوع إليها.',
+  favorites_login_prompt:'سجّل الدخول لرؤية مفضلاتك.', remove:'إزالة',
+  item_type_product:'منتج', item_type_article:'مقال',
+
+  lab_title:'أضف نتائج تحاليلك', lab_disclaimer:'هذا فحص تعليمي وليس تشخيصًا طبيًا. ناقش نتائجك دائمًا مع طبيبك.',
+  lab_notes_label:'ملاحظات (اختياري)', lab_notes_placeholder:'أي شيء آخر تود إضافته…',
+  lab_submit:'حفظ النتائج', lab_results_title:'تحاليلك المحفوظة',
+  lab_reference_range:'النطاق المرجعي', lab_ranges_disclaimer:'النطاقات المرجعية عامة وتقريبية للبالغين، وتختلف بين المخابر. ناقش نتائجك دائمًا مع طبيبك.',
+  lab_flag_low:'منخفض', lab_flag_normal:'طبيعي', lab_flag_high:'مرتفع',
+  lab_marker_ferritin:'الفيريتين', lab_marker_vitaminD:'فيتامين د', lab_marker_vitaminB12:'فيتامين ب12',
+  lab_marker_zinc:'الزنك', lab_marker_iron:'الحديد', lab_marker_tsh:'TSH', lab_marker_hemoglobin:'الهيموغلوبين',
+  lab_leave_blank:'اترك أي قيمة فارغة إذا لم تكن متوفرة لديك.',
+
+  settings_title:'الإعدادات', settings_subtitle:'حدّث ملفك الشخصي ولغتك وحسابك.',
+  update_profile:'تحديث الملف الشخصي', change_password:'تغيير كلمة المرور', new_password:'كلمة المرور الجديدة',
+  delete_account:'حذف الحساب', delete_account_desc:'سيؤدي هذا لمسح ملفك الشخصي ومفضلاتك وتحاليلك نهائيًا من هذا المتصفح.',
+  confirm_delete_account:'هل تريد حذف حسابك وكل بياناتك المحلية؟ لا يمكن التراجع عن هذا.',
+  language:'اللغة', switch_to_arabic:'العربية', switch_to_english:'English',
+  password_updated:'تم تحديث كلمة المرور', profile_updated:'تم تحديث الملف الشخصي',
+
+  admin_title:'لوحة الإدارة', admin_subtitle:'أدر المنتجات والمقالات التعليمية لهذا الحساب التجريبي.',
+  admin_manage_products:'إدارة المنتجات', admin_manage_articles:'إدارة المقالات',
+  admin_new_product:'منتج جديد', admin_new_article:'مقال جديد',
+  admin_name_en:'الاسم (بالإنجليزية)', admin_name_ar:'الاسم (بالعربية)',
+  admin_description_en:'الوصف (بالإنجليزية)', admin_description_ar:'الوصف (بالعربية)',
+  admin_price:'السعر (د.ج)', admin_quantity:'الكمية المتوفرة', admin_category:'الفئة',
+  admin_ingredients_en:'المكوّنات (بالإنجليزية)', admin_ingredients_ar:'المكوّنات (بالعربية)',
+  admin_utility_en:'الفائدة (بالإنجليزية)', admin_utility_ar:'الفائدة (بالعربية)',
+  admin_usage:'طريقة الاستخدام', admin_frequency:'التكرار',
+  admin_title_en:'العنوان (بالإنجليزية)', admin_title_ar:'العنوان (بالعربية)',
+  admin_summary_en:'الملخص (بالإنجليزية)', admin_summary_ar:'الملخص (بالعربية)',
+  admin_content_en:'المحتوى — HTML (بالإنجليزية)', admin_content_ar:'المحتوى — HTML (بالعربية)',
+  admin_create:'إنشاء', admin_update:'حفظ التغييرات', admin_enabled:'مفعّل', admin_is_demo:'منتج تجريبي دائم التوصية',
+  confirm_delete_product:'حذف هذا المنتج؟ لا يمكن التراجع عن هذا.',
+  confirm_delete_article:'حذف هذا المقال؟ لا يمكن التراجع عن هذا.',
+
+  toast_saved_product:'تم حفظ "{name}" في مفضلاتك', toast_login_to_save:'سجّل الدخول لحفظ المفضلة',
+  toast_removed_favorite:'تمت الإزالة من المفضلة', toast_product_created:'تم إنشاء المنتج', toast_product_updated:'تم تحديث المنتج',
+  toast_product_deleted:'تم حذف المنتج', toast_article_created:'تم إنشاء المقال', toast_article_updated:'تم تحديث المقال',
+  toast_article_deleted:'تم حذف المقال', toast_logged_out:'تم تسجيل الخروج',
+  onboarding_intro:'أجب عن بعض الأسئلة السريعة لنخصص لوحتك. يستغرق ذلك نحو دقيقة واحدة.',
+  role_admin_toggle:'تفعيل أدوات الإدارة لهذا الحساب'
+}
+};
+
+/* ------------------------------ Store ------------------------------------
+   Simulated single-account backend: everything lives in one localStorage
+   blob. There is exactly one account per browser — sign up creates it,
+   and it can be logged into again with the same email + password.
+   --------------------------------------------------------------------- */
+
+const STORAGE_KEY = 'haircare_dz_app_v1';
+
+function defaultState(){
+  return {
+    locale: 'en',
+    account: null,          // { email, password, isAdmin, createdAt }
+    session: false,         // logged in right now?
+    profile: null,          // { age, gender, wilayaId, duration, severity, conditions[], lifestyle, familyHistory, onboarded, createdAt }
+    favorites: [],          // [{ itemType:'product'|'article', itemId }]
+    labTests: [],           // [{ id, values:{}, notes, createdAt }]
+    recommendationHistory: [], // [{ id, createdAt, productIds:[] }]
+    products: DEFAULT_PRODUCTS.map(p => ({...p})),
+    articles: DEFAULT_ARTICLES.map(a => ({...a}))
+  };
+}
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return Object.assign(defaultState(), parsed, {
+      products: (parsed.products && parsed.products.length) ? parsed.products : DEFAULT_PRODUCTS.map(p=>({...p})),
+      articles: (parsed.articles && parsed.articles.length) ? parsed.articles : DEFAULT_ARTICLES.map(a=>({...a}))
+    });
+  } catch(e){
+    console.error('Failed to load saved data, starting fresh.', e);
+    return defaultState();
+  }
+}
+
+let STATE = loadState();
+
+function persist(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+}
+
+function t(key, vars){
+  const dict = I18N[STATE.locale] || I18N.en;
+  let str = dict[key] !== undefined ? dict[key] : (I18N.en[key] !== undefined ? I18N.en[key] : key);
+  if (vars) {
+    Object.keys(vars).forEach(k => { str = str.replace('{' + k + '}', vars[k]); });
+  }
+  return str;
+}
+
+function isRTL(){ return STATE.locale === 'ar'; }
+
+function localized(obj, field){
+  // e.g. localized(product, 'name') -> product.nameAr if ar locale & present, else product.name
+  if (isRTL()) {
+    const arField = field + 'Ar';
+    if (obj[arField]) return obj[arField];
+  }
+  return obj[field];
+}
+
+function esc(str){
+  if (str === undefined || str === null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* -------------------------------- Toasts --------------------------------- */
+
+function toast(message, kind){
+  kind = kind || 'default';
+  const root = document.getElementById('toast-root');
+  const el = document.createElement('div');
+  const palette = {
+    default: 'bg-slate-800/95 border-white/10 text-slate-100',
+    success: 'bg-brand-900/95 border-brand-500/40 text-brand-50',
+    error: 'bg-red-950/95 border-red-500/40 text-red-100'
+  };
+  el.className = 'toast-anim pointer-events-auto max-w-sm w-full sm:w-auto px-4 py-3 rounded-xl border shadow-glow-lg text-sm font-medium ' + (palette[kind]||palette.default);
+  el.textContent = message;
+  root.appendChild(el);
+  setTimeout(() => {
+    el.style.transition = 'opacity .3s, transform .3s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(6px)';
+    setTimeout(() => el.remove(), 300);
+  }, 2600);
+}
+
+/* ------------------------------ Recommendation engine --------------------- */
+
+function computeRecommendations(){
+  const profile = STATE.profile;
+  const enabledProducts = STATE.products.filter(p => p.enabled !== false);
+  const demo = enabledProducts.find(p => p.isDemo);
+  const results = [];
+  if (demo) results.push({ product: demo, reasonKey: 'reco_reason_demo' });
+
+  if (profile && profile.conditions && profile.conditions.length){
+    enabledProducts.forEach(p => {
+      if (p.isDemo) return;
+      const overlap = (p.conditions||[]).some(c => profile.conditions.includes(c));
+      if (overlap) results.push({ product: p, reasonKey: 'reco_reason_matched', severity: profile.severity });
+    });
+  }
+  if (results.length < 2){
+    enabledProducts.forEach(p => {
+      if (p.isDemo) return;
+      if (results.find(r => r.product.id === p.id)) return;
+      results.push({ product: p, reasonKey: 'reco_reason_general' });
+    });
+  }
+  return results;
+}
+
+function favoriteKey(itemType, itemId){ return itemType + ':' + itemId; }
+function isFavorite(itemType, itemId){
+  return STATE.favorites.some(f => f.itemType === itemType && f.itemId === itemId);
+}
+function toggleFavorite(itemType, itemId, label){
+  if (!STATE.session){ toast(t('toast_login_to_save'), 'error'); navigate('/login'); return; }
+  const idx = STATE.favorites.findIndex(f => f.itemType===itemType && f.itemId===itemId);
+  if (idx >= 0){
+    STATE.favorites.splice(idx,1);
+    toast(t('toast_removed_favorite'));
+  } else {
+    STATE.favorites.push({ itemType, itemId, createdAt: Date.now() });
+    toast(t('toast_saved_product', { name: label || '' }), 'success');
+  }
+  persist();
+  render();
+}
+
+/* --------------------------------- Icons ---------------------------------- */
+
+const Icon = {
+  logo: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 21c-1.5-3 .5-5 .5-8S6 8 8 5c1-1.5 2.5-2 4-2 .5 2-1 3-1 5 0 1.5 1 2 2.5 2S16 8.5 16 7c2 1.5 3 4 2.5 6.5-.5 2.5-2.5 3-2.5 5.5 0 1-.5 2-1.5 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  menu: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  close: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  heart: (filled) => `<svg width="18" height="18" viewBox="0 0 24 24" fill="${filled?'currentColor':'none'}"><path d="M12 20s-7-4.35-9.5-8.5C.7 8 2.3 4.5 6 4.5c2 0 3.5 1 6 3.5 2.5-2.5 4-3.5 6-3.5 3.7 0 5.3 3.5 3.5 7C19 15.65 12 20 12 20z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
+  arrow: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="rtl-flip"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  check: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  flask: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 3h6M10 3v6l-5.5 9a2 2 0 001.7 3h11.6a2 2 0 001.7-3L14 9V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  book: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 5.5A2.5 2.5 0 016.5 3H20v15.5A1.5 1.5 0 0118.5 20H6.5A2.5 2.5 0 004 17.5v-12z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
+  bottle: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 2h4M9 5h6l1.5 3.2a4 4 0 01.5 1.9V19a2 2 0 01-2 2H10a2 2 0 01-2-2V10.1a4 4 0 01.5-1.9L9 5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
+  grid: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>`,
+  trash: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  edit: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 00-3-3L5 17v3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
+  user: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 20c1.5-4 4.5-6 7.5-6s6 2 7.5 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+};
+
+/* --------------------------------- Router --------------------------------- */
+
+function getRoute(){
+  const hash = location.hash.replace(/^#/, '') || '/';
+  const [path, query] = hash.split('?');
+  const params = new URLSearchParams(query || '');
+  return { path: path || '/', params };
+}
+
+function navigate(path){
+  location.hash = path;
+}
+
+window.addEventListener('hashchange', render);
+window.addEventListener('DOMContentLoaded', init);
+
+function init(){
+  // Pre-seed a working demo account so the app is usable immediately,
+  // without requiring sign-up first. Sign-up simply overwrites it, since
+  // this build supports exactly one local account per browser.
+  if (!STATE.account){
+    STATE.account = { email: 'demo@haircare.dz', password: 'demo1234', isAdmin: true, createdAt: Date.now() };
+    persist();
+  }
+  applyLocale();
+  bindGlobalEvents();
+  render();
+}
+
+function applyLocale(){
+  document.documentElement.lang = STATE.locale;
+  document.documentElement.dir = isRTL() ? 'rtl' : 'ltr';
+  document.body.classList.toggle('font-arabic', isRTL());
+}
+
+/* --------------------------------- Layout ---------------------------------- */
+
+function navLink(route, label, iconSvg, current){
+  const active = current === route;
+  return `<a href="#${route}" data-nav
+    class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${active ? 'bg-brand-500/15 text-brand-200' : 'text-slate-300 hover:text-white hover:bg-white/5'}">
+    ${iconSvg}<span>${label}</span></a>`;
+}
+
+function header(){
+  const r = getRoute().path;
+  const loggedIn = STATE.session;
+  const isAdmin = loggedIn && STATE.account && STATE.account.isAdmin;
+
+  const primaryLinks = [
+    ['/products', t('nav_products'), Icon.bottle],
+    ['/articles', t('nav_articles'), Icon.book],
+    ['/lab-test', t('nav_lab_test'), Icon.flask],
+  ];
+  if (loggedIn) primaryLinks.push(['/favorites', t('nav_favorites'), Icon.heart(false)]);
+
+  const authArea = loggedIn ? `
+    <div class="hidden md:flex items-center gap-1">
+      ${navLink('/dashboard', t('nav_dashboard'), Icon.grid, r)}
+      ${isAdmin ? navLink('/admin', t('nav_admin'), Icon.edit, r) : ''}
+      <a href="#/settings" data-nav class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5">${Icon.user}<span>${t('nav_settings')}</span></a>
+      <button data-action="logout" class="ms-1 px-3 py-2 rounded-lg text-sm font-semibold text-accent-300 hover:text-accent-200 hover:bg-white/5">${t('nav_logout')}</button>
+    </div>` : `
+    <div class="hidden md:flex items-center gap-2">
+      <a href="#/login" data-nav class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5">${t('nav_login')}</a>
+      <a href="#/signup" data-nav class="px-4 py-2 rounded-lg text-sm font-semibold bg-brand-500 hover:bg-brand-400 text-white shadow-glow transition-colors">${t('nav_signup')}</a>
+    </div>`;
+
+  return `
+  <header class="sticky top-0 z-40 glass border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <a href="#/" data-nav class="flex items-center gap-2 text-white shrink-0">
+        <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-glow">${Icon.logo}</span>
+        <span class="font-extrabold tracking-tight text-lg leading-none">${t('app_name')}</span>
+      </a>
+      <nav class="hidden lg:flex items-center gap-1">
+        ${primaryLinks.map(([p,l,i]) => navLink(p,l,i,r)).join('')}
+      </nav>
+      <div class="flex items-center gap-2">
+        <button data-action="toggle-locale" class="px-2.5 py-2 rounded-lg text-xs font-bold border border-white/10 text-slate-300 hover:text-white hover:border-brand-400/50 transition-colors">
+          ${isRTL() ? t('switch_to_english') : t('switch_to_arabic')}
+        </button>
+        ${authArea}
+        <button data-action="toggle-mobile-nav" class="lg:hidden p-2 rounded-lg text-slate-200 hover:bg-white/5">${Icon.menu}</button>
+      </div>
+    </div>
+    <div id="mobile-nav" class="hidden lg:hidden border-t border-white/5 px-4 py-3 space-y-1">
+      ${primaryLinks.map(([p,l,i]) => navLink(p,l,i,r)).join('')}
+      ${loggedIn ? navLink('/dashboard', t('nav_dashboard'), Icon.grid, r) : ''}
+      ${loggedIn && isAdmin ? navLink('/admin', t('nav_admin'), Icon.edit, r) : ''}
+      ${loggedIn ? navLink('/settings', t('nav_settings'), Icon.user, r) : ''}
+      ${loggedIn
+        ? `<button data-action="logout" class="w-full text-start px-3 py-2 rounded-lg text-sm font-semibold text-accent-300 hover:bg-white/5">${t('nav_logout')}</button>`
+        : `<div class="flex gap-2 pt-2">
+             <a href="#/login" data-nav class="flex-1 text-center px-3 py-2 rounded-lg text-sm font-medium border border-white/10 text-slate-200">${t('nav_login')}</a>
+             <a href="#/signup" data-nav class="flex-1 text-center px-3 py-2 rounded-lg text-sm font-semibold bg-brand-500 text-white">${t('nav_signup')}</a>
+           </div>`}
+    </div>
+  </header>`;
+}
+
+function footer(){
+  return `
+  <footer class="border-t border-white/5 mt-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
+      <div class="flex items-center gap-2">
+        <span class="flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 text-brand-300">${Icon.logo}</span>
+        <span class="font-semibold text-slate-300">${t('app_name')}</span>
+      </div>
+      <p class="text-center">${t('footer_disclaimer')}</p>
+      <p class="text-xs text-slate-500">${t('demo_notice')}</p>
+    </div>
+  </footer>`;
+}
+
+function pageShell(innerHtml){
+  return `${header()}<main class="flex-1">${innerHtml}</main>${footer()}`;
+}
+
+function eyebrow(text){
+  return `<span class="inline-flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-brand-300 bg-brand-500/10 border border-brand-400/20 px-3 py-1 rounded-full">${text}</span>`;
+}
+
+/* ------------------------------- UI-only state ------------------------------ */
+
+const UI = {
+  quiz: { step: 0, duration: null, severity: null, conditions: [], age:'', gender:'', wilayaId:'', lifestyle:'non_smoker', familyHistory:null },
+  productFilter: { search: '', category: 'all' },
+  admin: { productEditId: null, articleEditId: null, tab: 'products' },
+};
+
+function resetQuizUI(){
+  const p = STATE.profile;
+  UI.quiz = {
+    step: 0,
+    duration: p ? p.duration : null,
+    severity: p ? p.severity : null,
+    conditions: p ? [...(p.conditions||[])] : [],
+    age: p ? (p.age||'') : '',
+    gender: p ? (p.gender||'') : '',
+    wilayaId: p ? (p.wilayaId||'') : '',
+    lifestyle: p ? (p.lifestyle||'non_smoker') : 'non_smoker',
+    familyHistory: p ? (p.familyHistory===true ? true : (p.familyHistory===false ? false : null)) : null
+  };
+}
+
+/* ---------------------------------- Render ----------------------------------- */
+
+const PROTECTED = ['/dashboard', '/favorites', '/settings', '/admin', '/onboarding'];
+
+function render(){
+  applyLocale();
+  const { path, params } = getRoute();
+  const app = document.getElementById('app');
+
+  if (PROTECTED.some(p => path === p || path.startsWith(p + '/')) && !STATE.session){
+    navigate('/login');
+    return;
+  }
+  if ((path.startsWith('/admin')) && !(STATE.account && STATE.account.isAdmin)){
+    app.innerHTML = pageShell(viewAdminLocked());
+    window.scrollTo(0,0);
+    return;
+  }
+
+  let html;
+  const segs = path.split('/').filter(Boolean);
+
+  if (path === '/' ) html = viewHome();
+  else if (path === '/login') html = viewLogin();
+  else if (path === '/signup') html = viewSignup();
+  else if (path === '/onboarding') html = viewOnboarding();
+  else if (path === '/dashboard') html = viewDashboard();
+  else if (path === '/products') html = viewProducts();
+  else if (segs[0] === 'products' && segs[1]) html = viewProductDetail(segs[1]);
+  else if (path === '/articles') html = viewArticles();
+  else if (segs[0] === 'articles' && segs[1]) html = viewArticleDetail(segs[1]);
+  else if (path === '/favorites') html = viewFavorites();
+  else if (path === '/lab-test') html = viewLabTest();
+  else if (path === '/settings') html = viewSettings();
+  else if (path === '/admin') html = viewAdmin();
+  else if (path === '/admin/products') html = viewAdminProducts();
+  else if (path === '/admin/articles') html = viewAdminArticles();
+  else html = view404();
+
+  app.innerHTML = pageShell(html);
+  window.scrollTo(0,0);
+}
+
+/* ----------------------------------- Home ------------------------------------ */
+
+function viewHome(){
+  const features = [
+    ['feature_onboarding_title','feature_onboarding_desc', Icon.grid, '/onboarding'],
+    ['feature_lab_test_title','feature_lab_test_desc', Icon.flask, '/lab-test'],
+    ['feature_dashboard_title','feature_dashboard_desc', Icon.user, '/dashboard'],
+    ['feature_products_title','feature_products_desc', Icon.bottle, '/products'],
+    ['feature_articles_title','feature_articles_desc', Icon.book, '/articles'],
+  ];
+  return `
+  <section class="relative overflow-hidden">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28 text-center">
+      <div class="animate-fade-up">${eyebrow(t('home_hero_eyebrow'))}</div>
+      <h1 class="mt-6 text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.1] animate-fade-up" style="animation-delay:.05s">
+        ${t('home_hero_title')}
+      </h1>
+      <p class="mt-5 max-w-2xl mx-auto text-lg text-slate-300 animate-fade-up" style="animation-delay:.1s">
+        ${t('home_hero_subtitle')}
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-up" style="animation-delay:.15s">
+        <a href="#/onboarding" data-nav class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold shadow-glow-lg transition-colors flex items-center justify-center gap-2">
+          ${t('home_cta_quiz')} ${Icon.arrow}
+        </a>
+        <a href="#/products" data-nav class="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-white/15 hover:border-brand-400/50 text-slate-100 font-semibold transition-colors">
+          ${t('home_cta_browse')}
+        </a>
+      </div>
+    </div>
+    <div class="pointer-events-none absolute -top-20 start-1/2 -translate-x-1/2 w-[640px] h-[640px] rounded-full bg-brand-600/20 blur-3xl pulse-ring"></div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 pb-24">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      ${features.map(([title,desc,icon,route]) => `
+        <a href="#${route}" data-nav class="group rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-brand-400/30 p-6 transition-all">
+          <div class="w-11 h-11 rounded-xl bg-brand-500/15 text-brand-300 flex items-center justify-center mb-4 group-hover:bg-brand-500/25 transition-colors">${icon}</div>
+          <h3 class="font-bold text-white mb-1.5">${t(title)}</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">${t(desc)}</p>
+        </a>`).join('')}
+      <div class="rounded-2xl border border-accent-400/20 bg-gradient-to-br from-accent-500/10 to-transparent p-6 flex flex-col justify-between">
+        <div>
+          <h3 class="font-bold text-white mb-1.5">${t('home_cta_quiz')}</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">${t('footer_disclaimer')}</p>
+        </div>
+        <a href="#/onboarding" data-nav class="mt-4 inline-flex items-center gap-1.5 text-accent-300 font-semibold text-sm">${t('home_cta_quiz')} ${Icon.arrow}</a>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ---------------------------------- Auth -------------------------------------- */
+
+function authShell(title, subtitle, bodyHtml){
+  return `
+  <section class="max-w-md mx-auto px-4 sm:px-6 py-16 sm:py-24">
+    <div class="animate-scale-in rounded-2xl border border-white/10 bg-white/[0.03] p-7 sm:p-8 shadow-glow">
+      <h1 class="text-2xl font-extrabold text-white">${title}</h1>
+      <p class="mt-1.5 text-sm text-slate-400">${subtitle}</p>
+      ${bodyHtml}
+    </div>
+  </section>`;
+}
+
+function viewLogin(){
+  const hasAccount = !!STATE.account;
+  const body = `
+    <form data-form="login" class="mt-6 space-y-4">
+      <div class="rounded-xl border border-brand-400/20 bg-brand-500/10 p-3.5 text-xs text-brand-100 leading-relaxed">
+        ${t('login_demo_hint')}
+        <button type="button" data-action="fill-demo" class="block mt-2 font-bold text-brand-200 hover:text-white underline underline-offset-2">${t('fill_demo')}</button>
+      </div>
+      <label class="block">
+        <span class="text-sm font-medium text-slate-300">${t('email')}</span>
+        <input name="email" type="email" required autocomplete="email" placeholder="demo@haircare.dz"
+          class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 focus:ring-1 focus:ring-brand-400 px-3.5 py-2.5 text-white placeholder:text-slate-500 outline-none transition-colors" />
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium text-slate-300">${t('password')}</span>
+        <input name="password" type="password" required autocomplete="current-password" placeholder="••••••••"
+          class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 focus:ring-1 focus:ring-brand-400 px-3.5 py-2.5 text-white placeholder:text-slate-500 outline-none transition-colors" />
+      </label>
+      <div id="auth-error" class="hidden text-sm text-red-300 bg-red-950/40 border border-red-500/20 rounded-lg px-3 py-2"></div>
+      <button type="submit" class="w-full py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold shadow-glow transition-colors">${t('login_action')}</button>
+    </form>
+    <p class="mt-5 text-center text-sm text-slate-400">${t('new_here')} <a href="#/signup" data-nav class="text-brand-300 font-semibold hover:text-brand-200">${t('create_an_account')}</a></p>
+    ${!hasAccount ? `<p class="mt-3 text-center text-xs text-slate-500">${isRTL()?'لا يوجد حساب بعد — أنشئ واحدًا أولًا.':'No account yet — create one first.'}</p>` : ''}
+  `;
+  return authShell(t('login_title'), t('login_subtitle'), body);
+}
+
+function viewSignup(){
+  const body = `
+    <form data-form="signup" class="mt-6 space-y-4">
+      <label class="block">
+        <span class="text-sm font-medium text-slate-300">${t('email')}</span>
+        <input name="email" type="email" required autocomplete="email" placeholder="you@example.com"
+          class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 focus:ring-1 focus:ring-brand-400 px-3.5 py-2.5 text-white placeholder:text-slate-500 outline-none transition-colors" />
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium text-slate-300">${t('password')}</span>
+        <input name="password" type="password" required minlength="6" autocomplete="new-password" placeholder="••••••••"
+          class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 focus:ring-1 focus:ring-brand-400 px-3.5 py-2.5 text-white placeholder:text-slate-500 outline-none transition-colors" />
+        <span class="text-xs text-slate-500 mt-1 block">${t('password_hint')}</span>
+      </label>
+      <div id="auth-error" class="hidden text-sm text-red-300 bg-red-950/40 border border-red-500/20 rounded-lg px-3 py-2"></div>
+      <button type="submit" class="w-full py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold shadow-glow transition-colors">${t('signup_action')}</button>
+    </form>
+    <p class="mt-5 text-center text-sm text-slate-400">${t('already_signed_up')} <a href="#/login" data-nav class="text-brand-300 font-semibold hover:text-brand-200">${t('nav_login')}</a></p>
+  `;
+  return authShell(t('signup_title'), t('signup_subtitle'), body);
+}
+
+function viewAdminLocked(){
+  return `<section class="max-w-lg mx-auto px-4 py-24 text-center">
+    <h1 class="text-2xl font-bold text-white mb-2">${t('admin_title')}</h1>
+    <p class="text-slate-400 mb-6">${isRTL() ? 'فعّل أدوات الإدارة من صفحة الإعدادات للمتابعة.' : 'Enable admin tools from Settings to continue.'}</p>
+    <a href="#/settings" data-nav class="inline-block px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold">${t('nav_settings')}</a>
+  </section>`;
+}
+
+function view404(){
+  return `<section class="max-w-lg mx-auto px-4 py-24 text-center">
+    <h1 class="text-3xl font-bold text-white mb-2">404</h1>
+    <p class="text-slate-400 mb-6">${isRTL() ? 'الصفحة غير موجودة.' : 'This page could not be found.'}</p>
+    <a href="#/" data-nav class="inline-block px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold">${isRTL()?'الرئيسية':'Go home'}</a>
+  </section>`;
+}
+
+/* -------------------------------- Onboarding quiz ------------------------------ */
+
+const QUIZ_STEPS = ['step_duration','step_severity','step_conditions','step_about','step_results'];
+
+function quizProgressBar(){
+  const pct = Math.round((UI.quiz.step / (QUIZ_STEPS.length-1)) * 100);
+  return `
+  <div class="flex items-center justify-between mb-2 text-xs font-semibold text-slate-400">
+    ${QUIZ_STEPS.map((s,i) => `<span class="${i<=UI.quiz.step ? 'text-brand-300' : ''}">${t(s)}</span>`).join('')}
+  </div>
+  <div class="h-1.5 rounded-full bg-white/10 overflow-hidden">
+    <div class="h-full bg-gradient-to-r from-brand-500 to-brand-300 transition-all duration-300" style="width:${pct}%"></div>
+  </div>`;
+}
+
+function choiceCard(selected, title, desc, dataAttrs){
+  return `<button type="button" ${dataAttrs}
+    class="w-full text-start p-4 rounded-xl border transition-all ${selected ? 'border-brand-400 bg-brand-500/15 shadow-glow' : 'border-white/10 bg-white/[0.02] hover:border-white/25'}">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <p class="font-semibold text-white">${title}</p>
+        ${desc ? `<p class="text-xs text-slate-400 mt-0.5">${desc}</p>` : ''}
+      </div>
+      <span class="w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${selected ? 'bg-brand-400 border-brand-400 text-white' : 'border-white/20 text-transparent'}">${Icon.check}</span>
+    </div>
+  </button>`;
+}
+
+function viewOnboarding(){
+  if (UI.quiz.step === undefined || UI.quiz._init !== true){
+    resetQuizUI();
+    UI.quiz._init = true;
+  }
+  const step = UI.quiz.step;
+
+  let body = '';
+  if (step === 0){
+    body = `
+      <h2 class="text-xl font-bold text-white mb-1">${t('quiz_q_duration')}</h2>
+      <p class="text-sm text-slate-400 mb-5">${t('onboarding_intro')}</p>
+      <div class="space-y-2.5">
+        ${['<3','3-6','6-12','>12'].map(d => choiceCard(UI.quiz.duration===d,
+          t({'<3':'duration_recent','3-6':'duration_few_months','6-12':'duration_about_year','>12':'duration_over_year'}[d]),
+          '', `data-action="quiz-pick" data-field="duration" data-value="${d}"`)).join('')}
+      </div>`;
+  } else if (step === 1){
+    body = `
+      <h2 class="text-xl font-bold text-white mb-5">${t('quiz_q_severity')}</h2>
+      <div class="space-y-2.5">
+        ${['mild','moderate','severe'].map(s => choiceCard(UI.quiz.severity===s, t('severity_'+s), t('severity_'+s+'_desc'),
+          `data-action="quiz-pick" data-field="severity" data-value="${s}"`)).join('')}
+      </div>`;
+  } else if (step === 2){
+    body = `
+      <h2 class="text-xl font-bold text-white mb-5">${t('quiz_q_conditions')}</h2>
+      <div class="grid sm:grid-cols-2 gap-2.5">
+        ${CONDITIONS.map(c => choiceCard(UI.quiz.conditions.includes(c.id), isRTL()?c.ar:c.en, '',
+          `data-action="quiz-toggle-condition" data-value="${c.id}"`)).join('')}
+      </div>`;
+  } else if (step === 3){
+    body = `
+      <h2 class="text-xl font-bold text-white mb-5">${t('step_about')}</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <label class="block">
+          <span class="text-sm font-medium text-slate-300">${t('age')}</span>
+          <input id="q-age" type="number" min="16" max="100" value="${esc(UI.quiz.age)}"
+            class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-3.5 py-2.5 text-white outline-none" />
+        </label>
+        <label class="block">
+          <span class="text-sm font-medium text-slate-300">${t('gender')}</span>
+          <select id="q-gender" class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-3.5 py-2.5 text-white outline-none">
+            <option value="">—</option>
+            <option value="male" ${UI.quiz.gender==='male'?'selected':''}>${t('gender_male')}</option>
+            <option value="female" ${UI.quiz.gender==='female'?'selected':''}>${t('gender_female')}</option>
+          </select>
+        </label>
+        <label class="block sm:col-span-2">
+          <span class="text-sm font-medium text-slate-300">${t('wilaya')}</span>
+          <select id="q-wilaya" class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-3.5 py-2.5 text-white outline-none">
+            <option value="">${t('select_wilaya')}</option>
+            ${WILAYAS.map(w => `<option value="${w.id}" ${String(UI.quiz.wilayaId)===String(w.id)?'selected':''}>${w.id}. ${w.name}</option>`).join('')}
+          </select>
+        </label>
+        <label class="block">
+          <span class="text-sm font-medium text-slate-300">${t('lifestyle')}</span>
+          <select id="q-lifestyle" class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-3.5 py-2.5 text-white outline-none">
+            <option value="non_smoker" ${UI.quiz.lifestyle==='non_smoker'?'selected':''}>${t('lifestyle_non_smoker')}</option>
+            <option value="smoker" ${UI.quiz.lifestyle==='smoker'?'selected':''}>${t('lifestyle_smoker')}</option>
+          </select>
+        </label>
+        <div class="block">
+          <span class="text-sm font-medium text-slate-300">${t('family_history_question')}</span>
+          <div class="mt-1.5 flex gap-2">
+            <button type="button" data-action="quiz-pick" data-field="familyHistory" data-value="true" class="flex-1 py-2.5 rounded-xl border font-medium ${UI.quiz.familyHistory===true?'border-brand-400 bg-brand-500/15 text-white':'border-white/10 text-slate-300'}">${t('yes')}</button>
+            <button type="button" data-action="quiz-pick" data-field="familyHistory" data-value="false" class="flex-1 py-2.5 rounded-xl border font-medium ${UI.quiz.familyHistory===false?'border-brand-400 bg-brand-500/15 text-white':'border-white/10 text-slate-300'}">${t('no')}</button>
+          </div>
+        </div>
+      </div>`;
+  } else if (step === 4){
+    saveProfileFromQuiz(false);
+    const recos = computeRecommendations();
+    body = `
+      <h2 class="text-xl font-bold text-white mb-1">${t('quiz_results_title')}</h2>
+      <p class="text-sm text-slate-400 mb-5">${t('quiz_results_intro')}</p>
+      <div class="space-y-3">
+        ${recos.length ? recos.map(r => recommendationCard(r)).join('') : `<p class="text-slate-400">${t('no_recommendations_yet')}</p>`}
+      </div>
+      <div class="mt-7 flex flex-col sm:flex-row gap-3">
+        <button data-action="quiz-finish" class="flex-1 py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold shadow-glow">${t('go_to_dashboard')}</button>
+        <a href="#/products" data-nav class="flex-1 text-center py-3 rounded-xl border border-white/15 text-slate-100 font-semibold">${t('browse_all_products')}</a>
+      </div>`;
+  }
+
+  const nav = step < 4 ? `
+    <div class="mt-7 flex items-center justify-between">
+      <button data-action="quiz-back" class="px-4 py-2.5 rounded-xl text-slate-300 hover:text-white font-medium ${step===0?'invisible':''}">← ${t('back')}</button>
+      <button data-action="quiz-next" class="px-6 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold shadow-glow flex items-center gap-2">
+        ${step===3 ? t('see_results') : t('continue')} ${Icon.arrow}
+      </button>
+    </div>` : '';
+
+  return `
+  <section class="max-w-xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    ${quizProgressBar()}
+    <div class="mt-8 animate-fade-up">
+      ${body}
+      ${nav}
+    </div>
+  </section>`;
+}
+
+function recommendationCard(r){
+  const p = r.product;
+  const name = localized(p, 'name');
+  let reason;
+  if (r.reasonKey === 'reco_reason_matched') reason = t('reco_reason_matched', { severity: t('severity_'+r.severity) });
+  else reason = t(r.reasonKey);
+  return `
+  <div class="flex gap-4 p-4 rounded-xl border border-white/10 bg-white/[0.03]">
+    <img src="${p.imageUrl || bottleSvg('#2490ED')}" alt="" class="w-16 h-16 rounded-lg object-cover shrink-0 bg-white/5" />
+    <div class="min-w-0">
+      <div class="flex items-center gap-2 flex-wrap">
+        <a href="#/products/${p.id}" data-nav class="font-semibold text-white hover:text-brand-300">${esc(name)}</a>
+        ${p.isDemo ? `<span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-accent-500/20 text-accent-300">${t('demo_product_badge')}</span>` : ''}
+      </div>
+      <p class="text-sm text-brand-200/90 mt-0.5">${reason}</p>
+      ${p.frequency ? `<p class="text-xs text-slate-500 mt-1">${esc(p.frequency)}</p>` : ''}
+    </div>
+  </div>`;
+}
+
+function saveProfileFromQuiz(markOnboarded){
+  const q = UI.quiz;
+  STATE.profile = {
+    age: q.age ? Number(q.age) : null,
+    gender: q.gender || null,
+    wilayaId: q.wilayaId ? Number(q.wilayaId) : null,
+    duration: q.duration,
+    severity: q.severity,
+    conditions: [...q.conditions],
+    lifestyle: q.lifestyle,
+    familyHistory: q.familyHistory,
+    onboarded: markOnboarded ? true : (STATE.profile ? STATE.profile.onboarded : false),
+    createdAt: (STATE.profile && STATE.profile.createdAt) ? STATE.profile.createdAt : Date.now(),
+    updatedAt: Date.now()
+  };
+  const recos = computeRecommendations();
+  STATE.recommendationHistory.push({ id: 'r'+Date.now(), createdAt: Date.now(), productIds: recos.map(r=>r.product.id) });
+  persist();
+}
+
+/* ---------------------------------- Dashboard ---------------------------------- */
+
+function viewDashboard(){
+  const profile = STATE.profile;
+  const recos = profile ? computeRecommendations() : [];
+  const favProducts = STATE.favorites.filter(f=>f.itemType==='product');
+  const daysTracked = profile ? Math.max(1, Math.floor((Date.now()-profile.createdAt)/86400000)) : 0;
+
+  const tips = [
+    isRTL()?'اشرب كمية كافية من الماء يوميًا لدعم صحة فروة الرأس.':'Stay hydrated — it supports a healthy scalp.',
+    isRTL()?'تجنب تمشيط الشعر المبلل بقوة لتقليل التكسر.':'Avoid brushing wet hair roughly to reduce breakage.',
+    isRTL()?'قلل من الإجهاد الحراري (السشوار والمكواة) قدر الإمكان.':'Limit heat styling tools where you can.'
+  ];
+
+  return `
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <h1 class="text-3xl font-extrabold text-white">${t('dashboard_title')}</h1>
+    <p class="text-slate-400 mt-1">${t('dashboard_subtitle')}</p>
+
+    <div class="mt-8 grid lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 space-y-6">
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <h2 class="font-bold text-white mb-4">${t('hair_profile_summary')}</h2>
+          ${profile ? `
+            <div class="grid sm:grid-cols-2 gap-3 text-sm">
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-slate-400">${t('field_duration')}</span><span class="text-white font-medium">${t({'<3':'duration_recent','3-6':'duration_few_months','6-12':'duration_about_year','>12':'duration_over_year'}[profile.duration]||'')}</span></div>
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-slate-400">${t('field_severity')}</span><span class="text-white font-medium">${t('severity_'+profile.severity)}</span></div>
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-slate-400">${t('age')}</span><span class="text-white font-medium">${profile.age||'—'}</span></div>
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-slate-400">${t('gender')}</span><span class="text-white font-medium">${profile.gender ? t('gender_'+profile.gender) : '—'}</span></div>
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-slate-400">${t('wilaya')}</span><span class="text-white font-medium">${profile.wilayaId ? (WILAYAS.find(w=>w.id===profile.wilayaId)||{}).name : '—'}</span></div>
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-slate-400">${t('lifestyle')}</span><span class="text-white font-medium">${t('lifestyle_'+profile.lifestyle)}</span></div>
+            </div>
+            ${profile.conditions && profile.conditions.length ? `
+              <div class="mt-4">
+                <p class="text-xs uppercase tracking-wide text-slate-500 font-bold mb-2">${t('conditions')}</p>
+                <div class="flex flex-wrap gap-1.5">
+                  ${profile.conditions.map(cid => { const c = CONDITIONS.find(x=>x.id===cid); return c ? `<span class="text-xs px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-200 border border-brand-400/20">${isRTL()?c.ar:c.en}</span>` : ''; }).join('')}
+                </div>
+              </div>` : ''}
+            <a href="#/onboarding" data-nav class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-brand-300 hover:text-brand-200">${t('revise_answers')} ${Icon.arrow}</a>
+          ` : `
+            <div class="text-center py-8">
+              <p class="font-semibold text-white">${t('no_profile_yet_title')}</p>
+              <p class="text-sm text-slate-400 mt-1">${t('no_profile_yet_desc')}</p>
+              <a href="#/onboarding" data-nav class="inline-block mt-4 px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold">${t('take_the_quiz')}</a>
+            </div>`}
+        </div>
+
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <h2 class="font-bold text-white mb-4">${t('recommendations')}</h2>
+          <div class="space-y-3">
+            ${recos.length ? recos.map(r=>recommendationCard(r)).join('') : `<p class="text-slate-400 text-sm">${t('no_recommendations_yet')}</p>`}
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        ${profile ? `
+        <div class="rounded-2xl border border-brand-400/20 bg-gradient-to-br from-brand-500/10 to-transparent p-6">
+          <h2 class="font-bold text-white mb-1">${t('progress_tracking')}</h2>
+          <p class="text-4xl font-extrabold text-brand-200 mt-3">${daysTracked}</p>
+          <p class="text-xs text-slate-400 mt-1">${t('progress_days_tracked')}</p>
+        </div>` : ''}
+
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <h2 class="font-bold text-white mb-3">${isRTL()?'نصائح تعليمية':'Educational tips'}</h2>
+          <ul class="space-y-2.5">
+            ${tips.map(tip => `<li class="flex gap-2 text-sm text-slate-300"><span class="text-brand-400 mt-0.5">${Icon.check}</span>${tip}</li>`).join('')}
+          </ul>
+          <a href="#/articles" data-nav class="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold text-brand-300 hover:text-brand-200">${t('nav_articles')} ${Icon.arrow}</a>
+        </div>
+
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-bold text-white">${t('nav_favorites')}</h2>
+            <a href="#/favorites" data-nav class="text-xs font-semibold text-brand-300 hover:text-brand-200">${isRTL()?'عرض الكل':'View all'}</a>
+          </div>
+          ${favProducts.length ? `<p class="text-sm text-slate-300">${favProducts.length} ${isRTL()?'منتج محفوظ':'saved product(s)'}</p>` : `<p class="text-sm text-slate-400">${t('no_favorites_yet')}</p>`}
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* --------------------------------- Products ------------------------------------ */
+
+function productCard(p){
+  const name = localized(p,'name');
+  const utility = localized(p,'utility') || localized(p,'description') || '';
+  const fav = isFavorite('product', p.id);
+  const inStock = (p.quantity||0) > 0;
+  return `
+  <div class="group rounded-2xl border border-white/10 bg-white/[0.03] hover:border-brand-400/30 overflow-hidden transition-all flex flex-col">
+    <a href="#/products/${p.id}" data-nav class="block aspect-[4/3] bg-white/5 overflow-hidden">
+      <img src="${p.imageUrl || bottleSvg('#2490ED')}" alt="${esc(name)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+    </a>
+    <div class="p-4 flex flex-col flex-1">
+      <div class="flex items-start justify-between gap-2">
+        <a href="#/products/${p.id}" data-nav class="font-semibold text-white leading-snug hover:text-brand-300">${esc(name)}</a>
+        <button data-action="toggle-fav" data-type="product" data-id="${p.id}" data-label="${esc(name)}"
+          class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center border ${fav ? 'bg-accent-500/20 border-accent-400/40 text-accent-300' : 'border-white/10 text-slate-400 hover:text-white'}">
+          ${Icon.heart(fav)}
+        </button>
+      </div>
+      ${p.isDemo ? `<span class="mt-1.5 inline-block w-fit text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-accent-500/20 text-accent-300">${t('demo_product_badge')}</span>` : ''}
+      <p class="text-sm text-slate-400 mt-1.5 line-clamp-2">${esc(utility)}</p>
+      <div class="mt-3 flex items-center justify-between">
+        <span class="font-bold text-brand-200">${p.price ? p.price.toLocaleString() + ' ' + t('currency_dzd') : ''}</span>
+        <span class="text-xs ${inStock ? 'text-emerald-400' : 'text-red-400'}">${inStock ? t('in_stock',{count:p.quantity}) : t('out_of_stock')}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function viewProducts(){
+  const cats = ['all', ...new Set(STATE.products.map(p=>p.category).filter(Boolean))];
+  let list = STATE.products.filter(p => p.enabled !== false);
+  if (UI.productFilter.category !== 'all') list = list.filter(p => p.category === UI.productFilter.category);
+  if (UI.productFilter.search){
+    const q = UI.productFilter.search.toLowerCase();
+    list = list.filter(p => (localized(p,'name')||'').toLowerCase().includes(q) || (localized(p,'description')||'').toLowerCase().includes(q));
+  }
+  return `
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <h1 class="text-3xl font-extrabold text-white">${t('products_title')}</h1>
+    <p class="text-slate-400 mt-1">${t('products_subtitle')}</p>
+
+    <div class="mt-6 flex flex-col sm:flex-row gap-3">
+      <input id="product-search" type="text" value="${esc(UI.productFilter.search)}" placeholder="${t('search_products')}"
+        class="flex-1 rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-4 py-2.5 text-white placeholder:text-slate-500 outline-none" />
+      <select id="product-category" class="rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-4 py-2.5 text-white outline-none">
+        ${cats.map(c => `<option value="${c}" ${UI.productFilter.category===c?'selected':''}>${c==='all' ? t('all_categories') : c}</option>`).join('')}
+      </select>
+    </div>
+
+    ${list.length ? `
+      <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        ${list.map(productCard).join('')}
+      </div>` : `
+      <div class="mt-16 text-center text-slate-400">
+        <p class="font-semibold text-white">${t('no_products_yet_title')}</p>
+      </div>`}
+  </section>`;
+}
+
+function viewProductDetail(id){
+  const p = STATE.products.find(x => x.id === id);
+  if (!p){
+    return `<section class="max-w-lg mx-auto px-4 py-24 text-center">
+      <p class="text-xl font-bold text-white">${t('product_not_found')}</p>
+      <a href="#/products" data-nav class="inline-block mt-4 text-brand-300 font-semibold">${t('browse_all_products')}</a>
+    </section>`;
+  }
+  const name = localized(p,'name');
+  const desc = localized(p,'description');
+  const ingredients = localized(p,'ingredients');
+  const utility = localized(p,'utility');
+  const fav = isFavorite('product', p.id);
+  const inStock = (p.quantity||0) > 0;
+  return `
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <a href="#/products" data-nav class="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-6">← ${t('browse_all_products')}</a>
+    <div class="grid md:grid-cols-2 gap-8">
+      <div class="rounded-2xl overflow-hidden bg-white/5 border border-white/10 aspect-square">
+        <img src="${p.imageUrl || bottleSvg('#2490ED')}" alt="${esc(name)}" class="w-full h-full object-cover" />
+      </div>
+      <div>
+        ${p.isDemo ? `<span class="inline-block mb-2 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-accent-500/20 text-accent-300">${t('demo_product_badge')}</span>` : ''}
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white">${esc(name)}</h1>
+        <p class="text-slate-400 mt-2">${esc(desc)}</p>
+        <div class="flex items-center gap-4 mt-4">
+          ${p.price ? `<span class="text-2xl font-extrabold text-brand-200">${p.price.toLocaleString()} ${t('currency_dzd')}</span>` : ''}
+          <span class="text-sm ${inStock ? 'text-emerald-400' : 'text-red-400'}">${inStock ? t('in_stock',{count:p.quantity}) : t('out_of_stock')}</span>
+        </div>
+        <div class="mt-6 flex gap-3">
+          <button data-action="toggle-fav" data-type="product" data-id="${p.id}" data-label="${esc(name)}"
+            class="flex-1 py-3 rounded-xl border font-semibold flex items-center justify-center gap-2 transition-colors ${fav ? 'bg-accent-500/15 border-accent-400/40 text-accent-200' : 'border-white/15 text-slate-100 hover:border-brand-400/40'}">
+            ${Icon.heart(fav)} ${fav ? t('saved_to_favorites') : t('save_to_favorites')}
+          </button>
+        </div>
+
+        <div class="mt-8 space-y-4">
+          ${utility ? `<div><p class="text-xs uppercase tracking-wide font-bold text-slate-500 mb-1">${t('utility')}</p><p class="text-sm text-slate-300">${esc(utility)}</p></div>` : ''}
+          ${p.usageInstructions ? `<div><p class="text-xs uppercase tracking-wide font-bold text-slate-500 mb-1">${t('usage')}</p><p class="text-sm text-slate-300">${esc(p.usageInstructions)}</p>${p.frequency ? `<p class="text-xs text-brand-300 mt-1">${esc(p.frequency)}</p>`:''}</div>` : ''}
+          ${ingredients ? `<div><p class="text-xs uppercase tracking-wide font-bold text-slate-500 mb-1">${t('ingredients')}</p><p class="text-sm text-slate-300">${esc(ingredients)}</p></div>` : ''}
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* --------------------------------- Articles ------------------------------------ */
+
+function articleCard(a){
+  const title = localized(a,'title');
+  const summary = localized(a,'summary');
+  const fav = isFavorite('article', a.slug);
+  return `
+  <div class="group rounded-2xl border border-white/10 bg-white/[0.03] hover:border-brand-400/30 p-6 transition-all flex flex-col">
+    <div class="w-10 h-10 rounded-xl bg-brand-500/15 text-brand-300 flex items-center justify-center mb-4">${Icon.book}</div>
+    <a href="#/articles/${a.slug}" data-nav class="font-bold text-white leading-snug hover:text-brand-300">${esc(title)}</a>
+    <p class="text-sm text-slate-400 mt-2 line-clamp-3 flex-1">${esc(summary)}</p>
+    <div class="mt-4 flex items-center justify-between">
+      <a href="#/articles/${a.slug}" data-nav class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-300 hover:text-brand-200">${isRTL()?'اقرأ المزيد':'Read more'} ${Icon.arrow}</a>
+      <button data-action="toggle-fav" data-type="article" data-id="${a.slug}" data-label="${esc(title)}"
+        class="w-8 h-8 rounded-full flex items-center justify-center border ${fav ? 'bg-accent-500/20 border-accent-400/40 text-accent-300' : 'border-white/10 text-slate-400 hover:text-white'}">${Icon.heart(fav)}</button>
+    </div>
+  </div>`;
+}
+
+function viewArticles(){
+  const list = STATE.articles.filter(a => a.enabled !== false);
+  return `
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <h1 class="text-3xl font-extrabold text-white">${t('articles_title')}</h1>
+    <p class="text-slate-400 mt-1">${t('articles_subtitle')}</p>
+    ${list.length ? `
+      <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">${list.map(articleCard).join('')}</div>` : `
+      <div class="mt-16 text-center text-slate-400"><p class="font-semibold text-white">${t('no_articles_yet_title')}</p></div>`}
+  </section>`;
+}
+
+function viewArticleDetail(slug){
+  const a = STATE.articles.find(x => x.slug === slug);
+  if (!a){
+    return `<section class="max-w-lg mx-auto px-4 py-24 text-center">
+      <p class="text-xl font-bold text-white">${t('article_not_found')}</p>
+      <a href="#/articles" data-nav class="inline-block mt-4 text-brand-300 font-semibold">${t('articles_title')}</a>
+    </section>`;
+  }
+  const title = localized(a,'title');
+  const content = localized(a,'content');
+  const fav = isFavorite('article', a.slug);
+  return `
+  <section class="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <a href="#/articles" data-nav class="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-6">← ${t('articles_title')}</a>
+    <div class="flex items-start justify-between gap-3">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white">${esc(title)}</h1>
+      <button data-action="toggle-fav" data-type="article" data-id="${a.slug}" data-label="${esc(title)}"
+        class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center border ${fav ? 'bg-accent-500/20 border-accent-400/40 text-accent-300' : 'border-white/10 text-slate-400 hover:text-white'}">${Icon.heart(fav)}</button>
+    </div>
+    <article class="prose-article mt-6 text-slate-300 leading-relaxed space-y-4 [&_h3]:text-white [&_h3]:font-bold [&_h3]:text-lg [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:ps-5 [&_ul]:space-y-1.5 [&_p]:leading-relaxed">
+      ${content}
+    </article>
+  </section>`;
+}
+
+/* -------------------------------- Favorites ------------------------------------ */
+
+function viewFavorites(){
+  const favs = STATE.favorites;
+  const products = favs.filter(f=>f.itemType==='product').map(f => STATE.products.find(p=>p.id===f.itemId)).filter(Boolean);
+  const articles = favs.filter(f=>f.itemType==='article').map(f => STATE.articles.find(a=>a.slug===f.itemId)).filter(Boolean);
+  return `
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <h1 class="text-3xl font-extrabold text-white">${t('favorites_title')}</h1>
+    <p class="text-slate-400 mt-1">${t('favorites_subtitle')}</p>
+
+    ${!products.length && !articles.length ? `
+      <div class="mt-16 text-center text-slate-400">
+        <p class="font-semibold text-white">${t('no_favorites_yet')}</p>
+        <p class="text-sm mt-1">${t('no_favorites_yet_desc')}</p>
+      </div>` : `
+      ${products.length ? `
+        <h2 class="mt-10 mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">${t('item_type_product')}</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">${products.map(productCard).join('')}</div>` : ''}
+      ${articles.length ? `
+        <h2 class="mt-10 mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">${t('item_type_article')}</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">${articles.map(articleCard).join('')}</div>` : ''}
+    `}
+  </section>`;
+}
+
+/* -------------------------------- Lab test ------------------------------------- */
+
+function flagFor(value, low, high){
+  if (value < low) return 'low';
+  if (value > high) return 'high';
+  return 'normal';
+}
+
+function viewLabTest(){
+  const flagColor = { low:'text-amber-300 bg-amber-500/10 border-amber-400/30', normal:'text-emerald-300 bg-emerald-500/10 border-emerald-400/30', high:'text-red-300 bg-red-500/10 border-red-400/30' };
+
+  const history = STATE.session ? [...STATE.labTests].sort((a,b)=>b.createdAt-a.createdAt) : [];
+
+  return `
+  <section class="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <h1 class="text-3xl font-extrabold text-white">${t('lab_title')}</h1>
+    <p class="mt-2 text-sm text-amber-200/90 bg-amber-500/10 border border-amber-400/20 rounded-xl px-4 py-3">${t('lab_disclaimer')}</p>
+
+    ${!STATE.session ? `
+      <div class="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center">
+        <p class="text-slate-300">${t('favorites_login_prompt')}</p>
+        <a href="#/login" data-nav class="inline-block mt-4 px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold">${t('nav_login')}</a>
+      </div>` : `
+    <form data-form="lab-test" class="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-5">
+      <p class="text-xs text-slate-500">${t('lab_leave_blank')}</p>
+      <div class="grid sm:grid-cols-2 gap-4">
+        ${MARKERS.map(m => `
+          <label class="block">
+            <span class="text-sm font-medium text-slate-300">${t('lab_marker_'+m.key)} <span class="text-slate-500 text-xs">(${m.unit})</span></span>
+            <input name="${m.key}" type="number" step="0.1"
+              class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-3.5 py-2.5 text-white outline-none" />
+          </label>`).join('')}
+      </div>
+      <label class="block">
+        <span class="text-sm font-medium text-slate-300">${t('lab_notes_label')}</span>
+        <textarea name="notes" rows="3" placeholder="${t('lab_notes_placeholder')}"
+          class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-3.5 py-2.5 text-white placeholder:text-slate-500 outline-none"></textarea>
+      </label>
+      <button type="submit" class="w-full py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold shadow-glow">${t('lab_submit')}</button>
+    </form>
+
+    ${history.length ? `
+      <h2 class="mt-10 mb-4 font-bold text-white">${t('lab_results_title')}</h2>
+      <div class="space-y-4">
+        ${history.map(entry => `
+          <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <p class="text-xs text-slate-500 mb-3">${new Date(entry.createdAt).toLocaleString(isRTL()?'ar-DZ':'en-US')}</p>
+            <div class="flex flex-wrap gap-2">
+              ${MARKERS.filter(m => entry.values[m.key] !== undefined && entry.values[m.key] !== null && entry.values[m.key] !== '').map(m => {
+                const v = Number(entry.values[m.key]);
+                const flag = flagFor(v, m.low, m.high);
+                return `<span class="text-xs px-3 py-1.5 rounded-full border ${flagColor[flag]}">${t('lab_marker_'+m.key)}: ${v} ${m.unit} · ${t('lab_flag_'+flag)}</span>`;
+              }).join('')}
+            </div>
+            ${entry.notes ? `<p class="text-sm text-slate-400 mt-3">${esc(entry.notes)}</p>` : ''}
+          </div>`).join('')}
+      </div>
+      <p class="text-xs text-slate-500 mt-4">${t('lab_ranges_disclaimer')}</p>
+    ` : `
+      <div class="mt-10 text-center text-slate-400">
+        <p class="font-semibold text-white">${t('no_lab_tests_yet_title')}</p>
+        <p class="text-sm mt-1">${t('no_lab_tests_yet_desc')}</p>
+      </div>`}
+    `}
+  </section>`;
+}
+
+/* -------------------------------- Settings -------------------------------------- */
+
+function viewSettings(){
+  const profile = STATE.profile;
+  return `
+  <section class="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <h1 class="text-3xl font-extrabold text-white">${t('settings_title')}</h1>
+    <p class="text-slate-400 mt-1">${t('settings_subtitle')}</p>
+
+    <div class="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+      <h2 class="font-bold text-white mb-4">${t('language')}</h2>
+      <div class="flex gap-2">
+        <button data-action="set-locale" data-locale="en" class="flex-1 py-2.5 rounded-xl border font-medium ${STATE.locale==='en' ? 'border-brand-400 bg-brand-500/15 text-white' : 'border-white/10 text-slate-300'}">English</button>
+        <button data-action="set-locale" data-locale="ar" class="flex-1 py-2.5 rounded-xl border font-medium ${STATE.locale==='ar' ? 'border-brand-400 bg-brand-500/15 text-white' : 'border-white/10 text-slate-300'}">العربية</button>
+      </div>
+    </div>
+
+    ${profile ? `
+    <div class="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+      <h2 class="font-bold text-white mb-4">${t('update_profile')}</h2>
+      <a href="#/onboarding" data-nav class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-300 hover:text-brand-200">${t('revise_answers')} ${Icon.arrow}</a>
+    </div>` : ''}
+
+    <div class="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+      <h2 class="font-bold text-white mb-4">${t('change_password')}</h2>
+      <form data-form="change-password" class="space-y-3">
+        <input name="password" type="password" minlength="6" required placeholder="${t('new_password')}"
+          class="w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-3.5 py-2.5 text-white placeholder:text-slate-500 outline-none" />
+        <button type="submit" class="w-full py-2.5 rounded-xl border border-white/15 hover:border-brand-400/50 text-slate-100 font-semibold">${t('change_password')}</button>
+      </form>
+    </div>
+
+    <div class="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+      <h2 class="font-bold text-white mb-1">${t('role_admin_toggle')}</h2>
+      <p class="text-xs text-slate-500 mb-4">${isRTL() ? 'يتيح لك هذا الحساب الوحيد إدارة المنتجات والمقالات.' : 'Lets this single account manage products and articles.'}</p>
+      <button data-action="toggle-admin" class="w-full py-2.5 rounded-xl border font-semibold ${STATE.account && STATE.account.isAdmin ? 'border-accent-400/40 bg-accent-500/15 text-accent-200' : 'border-white/15 text-slate-100'}">
+        ${STATE.account && STATE.account.isAdmin ? (isRTL()?'إيقاف وضع الإدارة':'Turn off admin mode') : (isRTL()?'تفعيل وضع الإدارة':'Turn on admin mode')}
+      </button>
+    </div>
+
+    <div class="mt-6 rounded-2xl border border-red-500/20 bg-red-950/20 p-6">
+      <h2 class="font-bold text-red-200 mb-1">${t('delete_account')}</h2>
+      <p class="text-sm text-red-300/70 mb-4">${t('delete_account_desc')}</p>
+      <button data-action="delete-account" class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold">${t('delete_account')}</button>
+    </div>
+  </section>`;
+}
+
+/* ---------------------------------- Admin --------------------------------------- */
+
+function viewAdmin(){
+  return `
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <h1 class="text-3xl font-extrabold text-white">${t('admin_title')}</h1>
+    <p class="text-slate-400 mt-1">${t('admin_subtitle')}</p>
+    <div class="mt-8 grid sm:grid-cols-2 gap-5">
+      <a href="#/admin/products" data-nav class="rounded-2xl border border-white/10 bg-white/[0.03] hover:border-brand-400/30 p-6 transition-colors">
+        <div class="w-11 h-11 rounded-xl bg-brand-500/15 text-brand-300 flex items-center justify-center mb-4">${Icon.bottle}</div>
+        <h2 class="font-bold text-white">${t('admin_manage_products')}</h2>
+        <p class="text-sm text-slate-400 mt-1">${STATE.products.length} ${isRTL()?'منتج':'product(s)'}</p>
+      </a>
+      <a href="#/admin/articles" data-nav class="rounded-2xl border border-white/10 bg-white/[0.03] hover:border-brand-400/30 p-6 transition-colors">
+        <div class="w-11 h-11 rounded-xl bg-brand-500/15 text-brand-300 flex items-center justify-center mb-4">${Icon.book}</div>
+        <h2 class="font-bold text-white">${t('admin_manage_articles')}</h2>
+        <p class="text-sm text-slate-400 mt-1">${STATE.articles.length} ${isRTL()?'مقال':'article(s)'}</p>
+      </a>
+    </div>
+  </section>`;
+}
+
+function adminField(label, name, value, type){
+  type = type || 'text';
+  if (type === 'textarea'){
+    return `<label class="block"><span class="text-sm font-medium text-slate-300">${label}</span>
+      <textarea name="${name}" rows="3" class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-3.5 py-2.5 text-white outline-none">${esc(value||'')}</textarea></label>`;
+  }
+  return `<label class="block"><span class="text-sm font-medium text-slate-300">${label}</span>
+    <input name="${name}" type="${type}" value="${esc(value===undefined||value===null?'':value)}" class="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 focus:border-brand-400 px-3.5 py-2.5 text-white outline-none" /></label>`;
+}
+
+function viewAdminProducts(){
+  const editing = UI.admin.productEditId ? STATE.products.find(p=>p.id===UI.admin.productEditId) : null;
+  const formTitle = editing ? t('edit') : t('admin_new_product');
+  return `
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <a href="#/admin" data-nav class="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-6">← ${t('admin_title')}</a>
+    <h1 class="text-2xl font-extrabold text-white">${t('admin_manage_products')}</h1>
+
+    <form data-form="admin-product" data-edit-id="${editing ? editing.id : ''}" class="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-4">
+      <h2 class="font-bold text-white">${formTitle}</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        ${adminField(t('admin_name_en'), 'name', editing && editing.name)}
+        ${adminField(t('admin_name_ar'), 'nameAr', editing && editing.nameAr)}
+        ${adminField(t('admin_category'), 'category', editing ? editing.category : 'Hair Growth Serum')}
+        ${adminField(t('admin_price'), 'price', editing && editing.price, 'number')}
+        ${adminField(t('admin_quantity'), 'quantity', editing ? editing.quantity : 50, 'number')}
+        ${adminField(t('admin_frequency'), 'frequency', editing && editing.frequency)}
+      </div>
+      ${adminField(t('admin_description_en'), 'description', editing && editing.description, 'textarea')}
+      ${adminField(t('admin_description_ar'), 'descriptionAr', editing && editing.descriptionAr, 'textarea')}
+      ${adminField(t('admin_utility_en'), 'utility', editing && editing.utility, 'textarea')}
+      ${adminField(t('admin_utility_ar'), 'utilityAr', editing && editing.utilityAr, 'textarea')}
+      ${adminField(t('admin_ingredients_en'), 'ingredients', editing && editing.ingredients, 'textarea')}
+      ${adminField(t('admin_ingredients_ar'), 'ingredientsAr', editing && editing.ingredientsAr, 'textarea')}
+      ${adminField(t('admin_usage'), 'usageInstructions', editing && editing.usageInstructions, 'textarea')}
+      <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="isDemo" ${editing && editing.isDemo ? 'checked':''} class="rounded border-white/20 bg-white/5" /> ${t('admin_is_demo')}</label>
+      <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="enabled" ${!editing || editing.enabled!==false ? 'checked':''} class="rounded border-white/20 bg-white/5" /> ${t('admin_enabled')}</label>
+      <div class="flex gap-3">
+        <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold">${editing ? t('admin_update') : t('admin_create')}</button>
+        ${editing ? `<button type="button" data-action="admin-cancel-edit-product" class="px-5 py-2.5 rounded-xl border border-white/15 text-slate-100">${t('cancel')}</button>` : ''}
+      </div>
+    </form>
+
+    <div class="mt-8 space-y-3">
+      ${STATE.products.map(p => `
+        <div class="flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/[0.03] ${p.enabled===false ? 'opacity-50' : ''}">
+          <img src="${p.imageUrl||bottleSvg('#2490ED')}" class="w-12 h-12 rounded-lg object-cover bg-white/5" />
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-white truncate">${esc(p.name)} ${p.isDemo ? `<span class="text-[10px] font-bold uppercase text-accent-300">· ${t('demo_product_badge')}</span>`:''}</p>
+            <p class="text-xs text-slate-500">${p.category||''} · ${p.enabled===false ? (isRTL()?'معطل':'disabled') : (isRTL()?'مفعل':'enabled')}</p>
+          </div>
+          <button data-action="admin-edit-product" data-id="${p.id}" class="p-2 rounded-lg border border-white/10 text-slate-300 hover:text-white">${Icon.edit}</button>
+          <button data-action="admin-delete-product" data-id="${p.id}" class="p-2 rounded-lg border border-white/10 text-red-300 hover:text-red-200">${Icon.trash}</button>
+        </div>`).join('')}
+    </div>
+  </section>`;
+}
+
+function viewAdminArticles(){
+  const editing = UI.admin.articleEditId ? STATE.articles.find(a=>a.slug===UI.admin.articleEditId) : null;
+  const formTitle = editing ? t('edit') : t('admin_new_article');
+  return `
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <a href="#/admin" data-nav class="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-6">← ${t('admin_title')}</a>
+    <h1 class="text-2xl font-extrabold text-white">${t('admin_manage_articles')}</h1>
+
+    <form data-form="admin-article" data-edit-slug="${editing ? editing.slug : ''}" class="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-4">
+      <h2 class="font-bold text-white">${formTitle}</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        ${adminField(t('admin_title_en'), 'title', editing && editing.title)}
+        ${adminField(t('admin_title_ar'), 'titleAr', editing && editing.titleAr)}
+      </div>
+      ${adminField(t('admin_summary_en'), 'summary', editing && editing.summary, 'textarea')}
+      ${adminField(t('admin_summary_ar'), 'summaryAr', editing && editing.summaryAr, 'textarea')}
+      ${adminField(t('admin_content_en'), 'content', editing && editing.content, 'textarea')}
+      ${adminField(t('admin_content_ar'), 'contentAr', editing && editing.contentAr, 'textarea')}
+      <label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="enabled" ${!editing || editing.enabled!==false ? 'checked':''} class="rounded border-white/20 bg-white/5" /> ${t('admin_enabled')}</label>
+      <div class="flex gap-3">
+        <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold">${editing ? t('admin_update') : t('admin_create')}</button>
+        ${editing ? `<button type="button" data-action="admin-cancel-edit-article" class="px-5 py-2.5 rounded-xl border border-white/15 text-slate-100">${t('cancel')}</button>` : ''}
+      </div>
+    </form>
+
+    <div class="mt-8 space-y-3">
+      ${STATE.articles.map(a => `
+        <div class="flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/[0.03] ${a.enabled===false ? 'opacity-50' : ''}">
+          <div class="w-10 h-10 rounded-lg bg-brand-500/15 text-brand-300 flex items-center justify-center shrink-0">${Icon.book}</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-white truncate">${esc(a.title)}</p>
+            <p class="text-xs text-slate-500">${a.slug}</p>
+          </div>
+          <button data-action="admin-edit-article" data-slug="${a.slug}" class="p-2 rounded-lg border border-white/10 text-slate-300 hover:text-white">${Icon.edit}</button>
+          <button data-action="admin-delete-article" data-slug="${a.slug}" class="p-2 rounded-lg border border-white/10 text-red-300 hover:text-red-200">${Icon.trash}</button>
+        </div>`).join('')}
+    </div>
+  </section>`;
+}
+
+/* ----------------------------- Global event delegation ---------------------------- */
+
+function showFormError(msg){
+  const el = document.getElementById('auth-error');
+  if (el){ el.textContent = msg; el.classList.remove('hidden'); }
+}
+
+function bindGlobalEvents(){
+  const app = document.getElementById('app');
+
+  app.addEventListener('click', (e) => {
+    const navEl = e.target.closest('[data-nav]');
+    if (navEl){
+      const mobileNav = document.getElementById('mobile-nav');
+      if (mobileNav) mobileNav.classList.add('hidden');
+      return; // let the hash link navigate naturally
+    }
+
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    const action = el.dataset.action;
+
+    switch(action){
+      case 'toggle-mobile-nav': {
+        const mn = document.getElementById('mobile-nav');
+        if (mn) mn.classList.toggle('hidden');
+        break;
+      }
+      case 'toggle-locale': {
+        STATE.locale = STATE.locale === 'en' ? 'ar' : 'en';
+        persist(); render();
+        break;
+      }
+      case 'set-locale': {
+        STATE.locale = el.dataset.locale;
+        persist(); render();
+        break;
+      }
+      case 'logout': {
+        STATE.session = false;
+        persist();
+        toast(t('toast_logged_out'));
+        navigate('/');
+        render();
+        break;
+      }
+      case 'toggle-fav': {
+        toggleFavorite(el.dataset.type, el.dataset.id, el.dataset.label);
+        break;
+      }
+      case 'fill-demo': {
+        const form = document.querySelector('[data-form="login"]');
+        if (form){
+          form.querySelector('input[name="email"]').value = STATE.account ? STATE.account.email : 'demo@haircare.dz';
+          form.querySelector('input[name="password"]').value = STATE.account ? STATE.account.password : 'demo1234';
+        }
+        break;
+      }
+      case 'quiz-pick': {
+        const field = el.dataset.field, value = el.dataset.value;
+        UI.quiz[field] = (value === 'true') ? true : (value === 'false') ? false : value;
+        render();
+        break;
+      }
+      case 'quiz-toggle-condition': {
+        const v = el.dataset.value;
+        const idx = UI.quiz.conditions.indexOf(v);
+        if (idx >= 0) UI.quiz.conditions.splice(idx,1); else UI.quiz.conditions.push(v);
+        render();
+        break;
+      }
+      case 'quiz-back': {
+        UI.quiz.step = Math.max(0, UI.quiz.step - 1);
+        render();
+        break;
+      }
+      case 'quiz-next': {
+        if (UI.quiz.step === 0 && !UI.quiz.duration){ toast(isRTL()?'يرجى الاختيار للمتابعة':'Please choose an option to continue.', 'error'); break; }
+        if (UI.quiz.step === 1 && !UI.quiz.severity){ toast(isRTL()?'يرجى الاختيار للمتابعة':'Please choose an option to continue.', 'error'); break; }
+        UI.quiz.step = Math.min(4, UI.quiz.step + 1);
+        render();
+        break;
+      }
+      case 'quiz-finish': {
+        saveProfileFromQuiz(true);
+        UI.quiz._init = false;
+        navigate('/dashboard');
+        render();
+        break;
+      }
+      case 'toggle-admin': {
+        STATE.account.isAdmin = !STATE.account.isAdmin;
+        persist(); render();
+        break;
+      }
+      case 'delete-account': {
+        if (confirm(t('confirm_delete_account'))){
+          localStorage.removeItem(STORAGE_KEY);
+          STATE = defaultState();
+          navigate('/');
+          init();
+        }
+        break;
+      }
+      case 'admin-edit-product': {
+        UI.admin.productEditId = el.dataset.id;
+        window.scrollTo(0,0);
+        render();
+        break;
+      }
+      case 'admin-cancel-edit-product': {
+        UI.admin.productEditId = null;
+        render();
+        break;
+      }
+      case 'admin-delete-product': {
+        if (confirm(t('confirm_delete_product'))){
+          STATE.products = STATE.products.filter(p => p.id !== el.dataset.id);
+          persist(); toast(t('toast_product_deleted')); render();
+        }
+        break;
+      }
+      case 'admin-edit-article': {
+        UI.admin.articleEditId = el.dataset.slug;
+        window.scrollTo(0,0);
+        render();
+        break;
+      }
+      case 'admin-cancel-edit-article': {
+        UI.admin.articleEditId = null;
+        render();
+        break;
+      }
+      case 'admin-delete-article': {
+        if (confirm(t('confirm_delete_article'))){
+          STATE.articles = STATE.articles.filter(a => a.slug !== el.dataset.slug);
+          persist(); toast(t('toast_article_deleted')); render();
+        }
+        break;
+      }
+    }
+  });
+
+  app.addEventListener('input', (e) => {
+    if (e.target.id === 'product-search'){
+      UI.productFilter.search = e.target.value;
+      renderProductsListOnly();
+    }
+  });
+  app.addEventListener('change', (e) => {
+    if (e.target.id === 'product-category'){
+      UI.productFilter.category = e.target.value;
+      render();
+    }
+  });
+
+  app.addEventListener('submit', (e) => {
+    const form = e.target.closest('[data-form]');
+    if (!form) return;
+    e.preventDefault();
+    const type = form.dataset.form;
+
+    if (type === 'login'){
+      const fd = new FormData(form);
+      const email = (fd.get('email')||'').trim();
+      const password = fd.get('password')||'';
+      if (STATE.account && STATE.account.email.toLowerCase() === email.toLowerCase() && STATE.account.password === password){
+        STATE.session = true;
+        persist();
+        toast(t('welcome_back'), 'success');
+        navigate(STATE.profile && STATE.profile.onboarded ? '/dashboard' : '/onboarding');
+        render();
+      } else {
+        showFormError(t('login_failed'));
+      }
+    }
+
+    else if (type === 'signup'){
+      const fd = new FormData(form);
+      const email = (fd.get('email')||'').trim();
+      const password = fd.get('password')||'';
+      if (!email || password.length < 6){ showFormError(t('signup_failed')); return; }
+      STATE.account = { email, password, isAdmin: true, createdAt: Date.now() };
+      STATE.session = true;
+      persist();
+      toast(t('welcome_back'), 'success');
+      navigate('/onboarding');
+      render();
+    }
+
+    else if (type === 'change-password'){
+      const fd = new FormData(form);
+      STATE.account.password = fd.get('password')||'';
+      persist();
+      toast(t('password_updated'), 'success');
+      form.reset();
+    }
+
+    else if (type === 'lab-test'){
+      const fd = new FormData(form);
+      const values = {};
+      MARKERS.forEach(m => {
+        const v = fd.get(m.key);
+        if (v !== '' && v !== null) values[m.key] = Number(v);
+      });
+      STATE.labTests.push({ id: 'lt'+Date.now(), values, notes: (fd.get('notes')||'').trim(), createdAt: Date.now() });
+      persist();
+      toast(t('saved'), 'success');
+      form.reset();
+      render();
+    }
+
+    else if (type === 'admin-product'){
+      const editId = form.dataset.editId;
+      const fd = new FormData(form);
+      const data = {
+        name: fd.get('name')||'', nameAr: fd.get('nameAr')||'',
+        category: fd.get('category')||'Uncategorized',
+        price: fd.get('price') ? Number(fd.get('price')) : null,
+        quantity: fd.get('quantity') ? Number(fd.get('quantity')) : 0,
+        frequency: fd.get('frequency')||'',
+        description: fd.get('description')||'', descriptionAr: fd.get('descriptionAr')||'',
+        utility: fd.get('utility')||'', utilityAr: fd.get('utilityAr')||'',
+        ingredients: fd.get('ingredients')||'', ingredientsAr: fd.get('ingredientsAr')||'',
+        usageInstructions: fd.get('usageInstructions')||'',
+        isDemo: fd.get('isDemo') === 'on',
+        enabled: fd.get('enabled') === 'on'
+      };
+      if (data.isDemo){
+        STATE.products.forEach(p => { if (p.id !== editId) p.isDemo = false; });
+      }
+      if (editId){
+        const idx = STATE.products.findIndex(p=>p.id===editId);
+        if (idx>=0){
+          STATE.products[idx] = Object.assign({}, STATE.products[idx], data, { imageUrl: STATE.products[idx].imageUrl || bottleSvg('#2490ED') });
+          toast(t('toast_product_updated'), 'success');
+        }
+      } else {
+        STATE.products.push(Object.assign({ id: 'p'+Date.now(), imageUrl: bottleSvg(['#2490ED','#f59e0b','#22d3ee','#a78bfa','#34d399'][STATE.products.length % 5]), conditions: [] }, data));
+        toast(t('toast_product_created'), 'success');
+      }
+      UI.admin.productEditId = null;
+      persist();
+      navigate('/admin/products');
+      render();
+    }
+
+    else if (type === 'admin-article'){
+      const editSlug = form.dataset.editSlug;
+      const fd = new FormData(form);
+      const title = fd.get('title')||'Untitled';
+      const data = {
+        title, titleAr: fd.get('titleAr')||'',
+        summary: fd.get('summary')||'', summaryAr: fd.get('summaryAr')||'',
+        content: fd.get('content')||'', contentAr: fd.get('contentAr')||'',
+        enabled: fd.get('enabled') === 'on'
+      };
+      if (editSlug){
+        const idx = STATE.articles.findIndex(a=>a.slug===editSlug);
+        if (idx>=0){
+          STATE.articles[idx] = Object.assign({}, STATE.articles[idx], data);
+          toast(t('toast_article_updated'), 'success');
+        }
+      } else {
+        let slug = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || ('article-'+Date.now());
+        if (STATE.articles.find(a=>a.slug===slug)) slug += '-'+Date.now();
+        STATE.articles.push(Object.assign({ slug }, data));
+        toast(t('toast_article_created'), 'success');
+      }
+      UI.admin.articleEditId = null;
+      persist();
+      navigate('/admin/articles');
+      render();
+    }
+  });
+}
+
+// Exposed for debugging in the browser console (e.g. window.APP.STATE).
+window.APP = { get STATE(){ return STATE; }, set STATE(v){ STATE = v; }, UI, render, navigate, persist };
+
+function renderProductsListOnly(){
+  // Lightweight re-render for the products grid while typing in search,
+  // so focus isn't lost on the search input itself.
+  const grid = document.querySelector('#app main');
+  if (!grid) { render(); return; }
+  render();
+  const input = document.getElementById('product-search');
+  if (input){
+    input.focus();
+    const val = input.value;
+    input.value = '';
+    input.value = val;
+  }
+}
+</script>
+</body>
+</html>
